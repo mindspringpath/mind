@@ -1,0 +1,87 @@
+import * as React from 'react'
+
+type LogoProps = {
+  className?: string
+  variant?: 'dark' | 'light'
+}
+
+export default function Logo({ className, variant = 'dark' }: LogoProps) {
+  const foreground = variant === 'dark' ? '#FFFFFF' : '#111111'
+
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 920 220"
+      role="img"
+      aria-label="MindSpring Path"
+      className={className}
+    >
+      <g transform="translate(40,40)">
+        <path
+          d="M18 98 C40 64, 72 50, 104 48 C121 47, 134 51, 138 54"
+          fill="none"
+          stroke="#7A0000"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+        <path
+          d="M30 110 V34 H44 L62 66 L80 34 H94 V110 H80 V70 L62 96 L44 70 V110 Z"
+          fill={foreground}
+        />
+        <path
+          d="M112 46 C112 39, 106 34, 98 34 H35 C32 34, 30 36, 30 39"
+          fill="none"
+          opacity="0"
+        />
+        <path
+          d="M112 46
+             C112 39, 106 34, 98 34
+             H86
+             C76 34, 70 40, 70 48
+             C70 56, 75 60, 86 63
+             L96 65
+             C103 67, 106 70, 106 74
+             C106 80, 102 84, 96 84
+             H84
+             C77 84, 72 80, 71 74
+             H59
+             C60 89, 72 98, 86 98
+             H98
+             C114 98, 124 89, 124 74
+             C124 60, 116 52, 101 49
+             L92 47
+             C86 46, 84 44, 84 41
+             C84 38, 86 36, 91 36
+             H98
+             C103 36, 107 38, 108 46 Z"
+          fill="#7A0000"
+        />
+      </g>
+
+      <g transform="translate(210,92)">
+        <text
+          x="0"
+          y="0"
+          fontFamily="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial"
+          fontSize="64"
+          fontWeight="800"
+          letterSpacing="-0.5"
+          fill={foreground}
+        >
+          MindSpring
+        </text>
+        <text
+          x="0"
+          y="66"
+          fontFamily="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial"
+          fontSize="56"
+          fontWeight="700"
+          letterSpacing="-0.5"
+          fill="#7A0000"
+        >
+          Path
+        </text>
+      </g>
+    </svg>
+  )
+}

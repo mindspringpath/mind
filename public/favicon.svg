@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="MindSpring Path favicon">
+  <rect x="0" y="0" width="64" height="64" rx="14" fill="#111111"/>
+  <path d="M10 43 C18 31, 29 26, 40 25 C47 25, 53 27, 55 28" fill="none" stroke="#7A0000" stroke-width="4" stroke-linecap="round"/>
+  <path d="M14 47 V18 H18 L24 29 L30 18 H34 V47 H30 V31 L24 41 L18 31 V47 Z" fill="#FFFFFF"/>
+  <path d="M44 23 C44 21, 42 19, 39 19 H35 C32 19, 30 21, 30 24 C30 26, 32 28, 35 29 L38 29 C41 30, 42 31, 42 33 C42 35, 41 36, 39 36 H35 C33 36, 31 35, 31 33 H28 C28 39, 32 43, 36 43 H40 C45 43, 48 40, 48 34 C48 29, 45 26, 41 25 L38 24 C36 24, 35 23, 35 22 C35 20, 36 20, 37 20 H40 C42 20, 43 21, 43 23 Z" fill="#7A0000"/>
+</svg>
