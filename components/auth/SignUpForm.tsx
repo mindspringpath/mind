@@ -40,8 +40,8 @@ export default function SignUpForm() {
       await signUp(formData.email, formData.password, formData.fullName)
       setSuccess(true)
     } catch (err: any) {
-      setError(err.message || 'An error occurred during sign up')
-    } finally {
+  setError(err.message || 'Signup failed. This email may already be registered.')
+} finally {
       setIsLoading(false)
     }
   }

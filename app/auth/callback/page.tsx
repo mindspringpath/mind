@@ -22,7 +22,7 @@ export default function AuthCallbackPage() {
       }
 
       // Success → redirect to dashboard
-      router.replace('/dashboard')
+      router.replace('/login')
     }
 
     handleCallback()
