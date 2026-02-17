@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import type { Database } from './supabase'
 
+export { supabase }
 export type User = Database['public']['Tables']['users']['Row']
 export type Appointment = Database['public']['Tables']['appointments']['Row']
 export type ProgramEnrollment = Database['public']['Tables']['program_enrolments']['Row']
