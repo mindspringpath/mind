@@ -31,35 +31,47 @@ export type Database = {
           created_at?: string
         }
       }
-      appointments: {
-        Row: {
-          id: string
-          user_id: string
-          date: string
-          time: string
-          session_type: string
-          status: 'pending' | 'confirmed' | 'cancelled'
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          date: string
-          time: string
-          session_type: string
-          status?: 'pending' | 'confirmed' | 'cancelled'
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          date?: string
-          time?: string
-          session_type?: string
-          status?: 'pending' | 'confirmed' | 'cancelled'
-          created_at?: string
-        }
-      }
+appointments: {
+  Row: {
+    id: string
+    user_id: string
+    full_name: string | null
+    email: string | null
+    phone: string | null
+    date: string
+    time: string
+    session_type: string
+    status: 'pending' | 'confirmed' | 'cancelled'
+    notes: string | null
+    created_at: string
+    updated_at: string
+  }
+  Insert: {
+    id?: string
+    user_id?: string
+    full_name?: string | null
+    email?: string | null
+    phone?: string | null
+    date?: string
+    time?: string
+    session_type?: string
+    status?: 'pending' | 'confirmed' | 'cancelled'
+    notes?: string | null
+    created_at?: string
+  }
+  Update: {
+    id?: string
+    user_id?: string
+    full_name?: string | null
+    email?: string | null
+    phone?: string | null
+    date?: string
+    time?: string
+    session_type?: string
+    status?: 'pending' | 'confirmed' | 'cancelled'
+    notes?: string | null
+  }
+}
       program_enrolments: {
         Row: {
           id: string

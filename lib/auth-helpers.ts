@@ -106,7 +106,7 @@ export async function createAppointment(appointment: Omit<Appointment, 'id' | 'c
     .insert(appointment)
     .select()
     .single()
-
+ 
   if (error) throw error
   return data
 }
