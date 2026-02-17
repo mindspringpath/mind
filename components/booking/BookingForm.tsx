@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { supabase, getCurrentUser } from '@/lib/auth-helpers'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
-import { sendEmail } from '@/lib/email'   // ⭐ EMAIL SENDER
 
 export default function BookingForm() {
   const router = useRouter()
@@ -104,34 +103,15 @@ export default function BookingForm() {
       if (error) throw error
 
       // ⭐⭐⭐ SEND BOOKING CONFIRMATION EMAIL ⭐⭐⭐
-      await sendEmail({
-        to: formData.email,
-        subject: 'Your MindSpring Path Session is Booked',
-        html: `
-          <h2>Your session is confirmed</h2>
-          <p><strong>Session Type:</strong> ${formData.sessionType}</p>
-          <p><strong>Date:</strong> ${formData.date}</p>
-          <p><strong>Time:</strong> ${formData.time}</p>
-          <br/>
-          <p>We look forward to supporting your journey.</p>
-          <p>MindSpring Path</p>
-        `
-      })
+      await fetch('/api/send-email', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    kind: 'booking_created',
+    appointment: newAppointmentObject
+  })
+})
 
-      // ⭐ OPTIONAL: SEND ADMIN NOTIFICATION
-      await sendEmail({
-        to: 'info@mindspringpath.com.au',
-        subject: 'New Appointment Booked',
-        html: `
-          <h2>New Booking</h2>
-          <p><strong>Name:</strong> ${formData.fullName}</p>
-          <p><strong>Email:</strong> ${formData.email}</p>
-          <p><strong>Phone:</strong> ${formData.phone}</p>
-          <p><strong>Session:</strong> ${formData.sessionType}</p>
-          <p><strong>Date:</strong> ${formData.date}</p>
-          <p><strong>Time:</strong> ${formData.time}</p>
-        `
-      })
 
       // Redirect to success page
       router.push('/booking/success')

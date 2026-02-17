@@ -1,0 +1,21 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[48],{6211:function(e,t,r){Promise.resolve().then(r.bind(r,8720))},8720:function(e,t,r){"use strict";r.r(t),r.d(t,{default:function(){return l},dynamic:function(){return i},fetchCache:function(){return c}});var s=r(7437),n=r(2265),a=r(6463),u=r(6881),o=r(3274);let i="force-dynamic",c="force-no-store";function l(){let e=(0,a.useRouter)(),t=(0,a.useSearchParams)().get("code"),[r,i]=(0,n.useState)(""),[c,l]=(0,n.useState)(""),[d,m]=(0,n.useState)(""),[f,h]=(0,n.useState)(""),[p,w]=(0,n.useState)(!1),x=async t=>{if(t.preventDefault(),m(""),h(""),r!==c){m("Passwords do not match.");return}w(!0);try{let{error:t}=await u.O.auth.updateUser({password:r});if(t)throw t;h("Password updated successfully!"),setTimeout(()=>e.replace("/auth/login"),1500)}catch(e){m(e.message||"Failed to update password.")}finally{w(!1)}};return t?(0,s.jsxs)("div",{className:"max-w-md mx-auto mt-20 p-6",children:[(0,s.jsx)("h1",{className:"text-2xl font-bold text-softwhite mb-6 text-center",children:"Reset Password"}),d&&(0,s.jsx)("div",{className:"mb-4 p-4 bg-slate border border-red-500/40 text-red-300 rounded-xl",children:d}),f&&(0,s.jsx)("div",{className:"mb-4 p-4 bg-green-500/20 border border-green-500/40 text-green-300 rounded-xl",children:f}),(0,s.jsxs)("form",{onSubmit:x,className:"space-y-4",children:[(0,s.jsx)("input",{type:"password",placeholder:"New Password",className:"mindspring-input w-full",value:r,onChange:e=>i(e.target.value),required:!0}),(0,s.jsx)("input",{type:"password",placeholder:"Confirm Password",className:"mindspring-input w-full",value:c,onChange:e=>l(e.target.value),required:!0}),(0,s.jsx)("button",{type:"submit",disabled:p,className:"w-full bg-primary text-white py-3 rounded-lg font-medium",children:p?(0,s.jsx)(o.Z,{className:"w-5 h-5 animate-spin mx-auto"}):"Reset Password"})]})]}):(0,s.jsx)("div",{className:"text-center text-red-400 mt-20",children:"Invalid or missing reset token."})}},6881:function(e,t,r){"use strict";r.d(t,{O:function(){return o}});var s=r(7327),n=r(357);let a=n.env.NEXT_PUBLIC_SUPABASE_URL,u=n.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,o=(0,s.eI)(a,u)},8030:function(e,t,r){"use strict";r.d(t,{Z:function(){return i}});var s=r(2265);/**
+ * @license lucide-react v0.427.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let n=e=>e.replace(/([a-z0-9])([A-Z])/g,"$1-$2").toLowerCase(),a=function(){for(var e=arguments.length,t=Array(e),r=0;r<e;r++)t[r]=arguments[r];return t.filter((e,t,r)=>!!e&&r.indexOf(e)===t).join(" ")};/**
+ * @license lucide-react v0.427.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */var u={xmlns:"http://www.w3.org/2000/svg",width:24,height:24,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round"};/**
+ * @license lucide-react v0.427.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let o=(0,s.forwardRef)((e,t)=>{let{color:r="currentColor",size:n=24,strokeWidth:o=2,absoluteStrokeWidth:i,className:c="",children:l,iconNode:d,...m}=e;return(0,s.createElement)("svg",{ref:t,...u,width:n,height:n,stroke:r,strokeWidth:i?24*Number(o)/Number(n):o,className:a("lucide",c),...m},[...d.map(e=>{let[t,r]=e;return(0,s.createElement)(t,r)}),...Array.isArray(l)?l:[l]])}),i=(e,t)=>{let r=(0,s.forwardRef)((r,u)=>{let{className:i,...c}=r;return(0,s.createElement)(o,{ref:u,iconNode:t,className:a("lucide-".concat(n(e)),i),...c})});return r.displayName="".concat(e),r}},3274:function(e,t,r){"use strict";r.d(t,{Z:function(){return s}});/**
+ * @license lucide-react v0.427.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let s=(0,r(8030).Z)("LoaderCircle",[["path",{d:"M21 12a9 9 0 1 1-6.219-8.56",key:"13zald"}]])},6463:function(e,t,r){"use strict";var s=r(1169);r.o(s,"useRouter")&&r.d(t,{useRouter:function(){return s.useRouter}}),r.o(s,"useSearchParams")&&r.d(t,{useSearchParams:function(){return s.useSearchParams}})}},function(e){e.O(0,[149,971,23,744],function(){return e(e.s=6211)}),_N_E=e.O()}]);

@@ -34,7 +34,9 @@ export default function AppointmentsPage() {
         .order('date', { ascending: true })
         .order('time', { ascending: true })
 
-      if (!error && data) setAppointments(data)
+      if (!error && data) {
+        setAppointments(data)
+      }
 
       setLoading(false)
     }
@@ -61,10 +63,16 @@ export default function AppointmentsPage() {
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-charcoal text-center px-4">
-        <h1 className="text-3xl font-bold text-softwhite mb-4">You are not logged in</h1>
-        <p className="text-softwhite/70 mb-6">Please log in to view your booked sessions.</p>
+        <h1 className="text-3xl font-bold text-softwhite mb-4">
+          You are not logged in
+        </h1>
+        <p className="text-softwhite/70 mb-6">
+          Please log in to view your booked sessions.
+        </p>
         <Link href="/login">
-          <Button className="btn-mindspring-primary px-6 py-3">Login</Button>
+          <Button className="btn-mindspring-primary px-6 py-3">
+            Login
+          </Button>
         </Link>
       </div>
     )
@@ -73,13 +81,19 @@ export default function AppointmentsPage() {
   return (
     <div className="min-h-screen bg-charcoal px-4 py-16">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-softwhite mb-8">My Appointments</h1>
+        <h1 className="text-3xl font-bold text-softwhite mb-8">
+          My Appointments
+        </h1>
 
         {appointments.length === 0 && (
           <div className="bg-slate/20 border border-graphite rounded-xl p-8 text-center">
-            <p className="text-softwhite/80 mb-6">You have no booked sessions yet.</p>
+            <p className="text-softwhite/80 mb-6">
+              You have no booked sessions yet.
+            </p>
             <Link href="/booking">
-              <Button className="btn-mindspring-primary px-6 py-3">Book a Session</Button>
+              <Button className="btn-mindspring-primary px-6 py-3">
+                Book a Session
+              </Button>
             </Link>
           </div>
         )}
@@ -91,7 +105,9 @@ export default function AppointmentsPage() {
               className="bg-slate/20 border border-graphite rounded-xl p-6 shadow-md"
             >
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-xl font-semibold text-softwhite">{appt.session_type}</h2>
+                <h2 className="text-xl font-semibold text-softwhite">
+                  {appt.session_type}
+                </h2>
 
                 <span
                   className={
@@ -143,33 +159,23 @@ export default function AppointmentsPage() {
                         return
                       }
 
-                      // Email client
+                      // ✅ Send cancellation emails via API route (server-side)
                       await fetch('/api/send-email', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    kind: 'appointment_cancelled',
-    appointment: appt
-  })
-})
-
-
-                      // Email admin
-                      await sendEmail({
-                        to: 'info@mindspringpath.com.au',
-                        subject: 'Appointment Cancelled',
-                        html: `
-                          <h2>Appointment Cancelled</h2>
-                          <p><strong>Name:</strong> ${appt.full_name}</p>
-                          <p><strong>Email:</strong> ${appt.email}</p>
-                          <p><strong>Date:</strong> ${appt.date}</p>
-                          <p><strong>Time:</strong> ${appt.time}</p>
-                          <p><strong>Session:</strong> ${appt.session_type}</p>
-                        `
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          kind: 'appointment_cancelled',
+                          appointment: appt
+                        })
                       })
 
+                      // Update UI
                       setAppointments((prev) =>
-                        prev.map((a) => (a.id === appt.id ? { ...a, status: 'cancelled' } : a))
+                        prev.map((a) =>
+                          a.id === appt.id
+                            ? { ...a, status: 'cancelled' }
+                            : a
+                        )
                       )
                     }}
                   >
@@ -194,7 +200,11 @@ export default function AppointmentsPage() {
           appt={reschedule}
           onClose={() => setReschedule(null)}
           onUpdated={(updated: any) =>
-            setAppointments((prev) => prev.map((a) => (a.id === updated.id ? updated : a)))
+            setAppointments((prev) =>
+              prev.map((a) =>
+                a.id === updated.id ? updated : a
+              )
+            )
           }
         />
       )}
