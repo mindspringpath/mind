@@ -107,13 +107,17 @@ export default function BookingForm() {
     }
 
     try {
-      const appointment = await createAppointment({
-        user_id: user?.id || null,
-        date: selectedDate,
-        time: selectedTime,
-        session_type: selectedService,
-        status: 'pending'
-      })
+const appointment = await createAppointment({
+  user_id: user?.id || null,
+  date: selectedDate,
+  time: selectedTime,
+  session_type,
+  status: "pending",
+  full_name: fullName || null,
+  email: email || null,
+  phone: phone || null,
+  notes: notes || null
+});
 
       // Send confirmation email
       await sendEmailConfirmation(appointment.id)
