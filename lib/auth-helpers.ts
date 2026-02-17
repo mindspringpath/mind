@@ -1,45 +1,81 @@
-import { supabase } from './supabase'
-import type { Database } from './supabase'
-
-export type User = Database['public']['Tables']['users']['Row']
-export type Appointment = Database['public']['Tables']['appointments']['Row']
-export type ProgramEnrollment = Database['public']['Tables']['program_enrolments']['Row']
-
 // -----------------------------
-// AUTHENTICATION HELPERS
+// APPOINTMENT HELPERS
 // -----------------------------
-export async function signUp(email: string, password: string, fullName: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-      },
-      emailRedirectTo: "https://mindspringpath.com.au/auth/callback",
-    },
-  })
+export async function createAppointment(appointment) {
+  const { data, error } = await supabase
+    .from('appointments')
+    .insert(appointment)
+    .select()
+    .single()
 
   if (error) throw error
   return data
 }
 
-export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+export async function getUserAppointments(userId) {
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date', { ascending: true })
+    .order('time', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function updateAppointment(id, updates) {
+  const { data, error } = await supabase
+    .from('appointments')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
 
   if (error) throw error
   return data
 }
 
-export async function signOut() {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
+export async function cancelAppointment(id) {
+  return updateAppointment(id, { status: 'cancelled' })
 }
 
-export async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+// -----------------------------
+// PROGRAM ENROLLMENT HELPERS
+// -----------------------------
+export async function createProgramEnrollment(enrollment) {
+  const { data, error } = await supabase
+    .from('program_enrolments')
+    .insert(enrollment)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function getUserProgramEnrollments(userId) {
+  const { data, error } = await supabase
+    .from('program_enrolments')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data || []
+}
+
+// -----------------------------
+// EMAIL & SMS PLACEHOLDERS
+// -----------------------------
+export async function sendEmailConfirmation(appointmentId) {
+  console.log('Email confirmation sent for appointment:', appointmentId)
+}
+
+export async function sendEmailReminder(appointmentId) {
+  console.log('Email reminder sent for appointment:', appointmentId)
+}
+
+export async function sendSMSReminder(appointmentId, phoneNumber) {
+  console.log('SMS reminder sent to:', phoneNumber, 'for appointment:', appointmentId)
 }
