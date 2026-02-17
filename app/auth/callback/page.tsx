@@ -11,7 +11,6 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      // Try to exchange code from URL
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(
         window.location.href
       )
@@ -21,7 +20,7 @@ export default function AuthCallbackPage() {
         return
       }
 
-      // Success → redirect to dashboard
+      // Redirect to login after successful verification
       router.replace('/login')
     }
 
@@ -47,7 +46,7 @@ export default function AuthCallbackPage() {
     <div className="flex flex-col items-center justify-center min-h-screen text-center p-6">
       <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
       <h1 className="text-xl font-semibold text-softwhite mb-2">Verifying your account…</h1>
-      <p className="text-softwhite/70">Please wait while we complete your login.</p>
+      <p className="text-softwhite/70">Please wait while we complete your verification.</p>
     </div>
   )
 }
