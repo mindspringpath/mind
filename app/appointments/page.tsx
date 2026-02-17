@@ -5,19 +5,23 @@ import { supabase, getCurrentUser } from '@/lib/auth-helpers'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { sendEmail } from '@/lib/email'
+import RescheduleModal from '@/components/booking/RescheduleModal'
 
 export default function AppointmentsPage() {
   const [user, setUser] = useState<any>(null)
   const [appointments, setAppointments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-const [reschedule, setReschedule] = useState(null)
-  // Load user + appointments
+  const [reschedule, setReschedule] = useState<any>(null)
+
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true)
+
       const currentUser = await getCurrentUser()
 
       if (!currentUser) {
         setUser(null)
+        setAppointments([])
         setLoading(false)
         return
       }
@@ -31,9 +35,7 @@ const [reschedule, setReschedule] = useState(null)
         .order('date', { ascending: true })
         .order('time', { ascending: true })
 
-      if (!error && data) {
-        setAppointments(data)
-      }
+      if (!error && data) setAppointments(data)
 
       setLoading(false)
     }
@@ -49,7 +51,6 @@ const [reschedule, setReschedule] = useState(null)
     }
   }, [])
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-charcoal">
@@ -58,20 +59,13 @@ const [reschedule, setReschedule] = useState(null)
     )
   }
 
-  // Not logged in
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-charcoal text-center px-4">
-        <h1 className="text-3xl font-bold text-softwhite mb-4">
-          You are not logged in
-        </h1>
-        <p className="text-softwhite/70 mb-6">
-          Please log in to view your booked sessions.
-        </p>
+        <h1 className="text-3xl font-bold text-softwhite mb-4">You are not logged in</h1>
+        <p className="text-softwhite/70 mb-6">Please log in to view your booked sessions.</p>
         <Link href="/login">
-          <Button className="btn-mindspring-primary px-6 py-3">
-            Login
-          </Button>
+          <Button className="btn-mindspring-primary px-6 py-3">Login</Button>
         </Link>
       </div>
     )
@@ -80,39 +74,26 @@ const [reschedule, setReschedule] = useState(null)
   return (
     <div className="min-h-screen bg-charcoal px-4 py-16">
       <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold text-softwhite mb-8">My Appointments</h1>
 
-        <h1 className="text-3xl font-bold text-softwhite mb-8">
-          My Appointments
-        </h1>
-
-        {/* Empty state */}
         {appointments.length === 0 && (
           <div className="bg-slate/20 border border-graphite rounded-xl p-8 text-center">
-            <p className="text-softwhite/80 mb-6">
-              You have no booked sessions yet.
-            </p>
+            <p className="text-softwhite/80 mb-6">You have no booked sessions yet.</p>
             <Link href="/booking">
-              <Button className="btn-mindspring-primary px-6 py-3">
-                Book a Session
-              </Button>
+              <Button className="btn-mindspring-primary px-6 py-3">Book a Session</Button>
             </Link>
           </div>
         )}
 
-        {/* Appointment list */}
         <div className="space-y-6">
           {appointments.map((appt) => (
             <div
               key={appt.id}
               className="bg-slate/20 border border-graphite rounded-xl p-6 shadow-md"
             >
-              {/* Header row */}
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-xl font-semibold text-softwhite">
-                  {appt.session_type}
-                </h2>
+                <h2 className="text-xl font-semibold text-softwhite">{appt.session_type}</h2>
 
-                {/* Status badge */}
                 <span
                   className={
                     'text-sm px-3 py-1 rounded-full ' +
@@ -127,7 +108,6 @@ const [reschedule, setReschedule] = useState(null)
                 </span>
               </div>
 
-              {/* Details */}
               <p className="text-softwhite/80">
                 <strong>Date:</strong> {appt.date}
               </p>
@@ -141,96 +121,88 @@ const [reschedule, setReschedule] = useState(null)
                 </p>
               )}
 
-              {/* Actions */}
               {appt.status !== 'cancelled' && (
                 <div className="mt-4 flex gap-3">
-
-                  {/* Cancel button */}
-                  
                   <Button
-  variant="outline"
-  className="btn-mindspring-outline"
-  onClick={async () => {
-    const ok = confirm('Cancel this appointment?')
-    if (!ok) return
+                    variant="outline"
+                    className="btn-mindspring-outline"
+                    onClick={async () => {
+                      const ok = confirm('Cancel this appointment?')
+                      if (!ok) return
 
-    const { error } = await supabase
-      .from('appointments')
-      .update({
-        status: 'cancelled',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', appt.id)
+                      const { error } = await supabase
+                        .from('appointments')
+                        .update({
+                          status: 'cancelled',
+                          updated_at: new Date().toISOString()
+                        })
+                        .eq('id', appt.id)
 
-    if (error) {
-      console.error(error)
-      alert('Could not cancel appointment.')
-      return
-    }
+                      if (error) {
+                        console.error(error)
+                        alert('Could not cancel appointment.')
+                        return
+                      }
 
-    // ⭐ SEND CANCELLATION EMAIL TO CLIENT
-    await sendEmail({
-      to: appt.email,
-      subject: 'Your MindSpring Path Appointment Has Been Cancelled',
-      html: `
-        <h2>Your appointment has been cancelled</h2>
-        <p><strong>Date:</strong> ${appt.date}</p>
-        <p><strong>Time:</strong> ${appt.time}</p>
-        <p><strong>Session Type:</strong> ${appt.session_type}</p>
-        <br/>
-        <p>If this was a mistake, you can book again anytime.</p>
-        <p>MindSpring Path</p>
-      `
-    })
+                      // Email client
+                      await sendEmail({
+                        to: appt.email,
+                        subject: 'Your MindSpring Path Appointment Has Been Cancelled',
+                        html: `
+                          <h2>Your appointment has been cancelled</h2>
+                          <p><strong>Date:</strong> ${appt.date}</p>
+                          <p><strong>Time:</strong> ${appt.time}</p>
+                          <p><strong>Session Type:</strong> ${appt.session_type}</p>
+                          <br/>
+                          <p>If this was a mistake, you can book again anytime.</p>
+                          <p>MindSpring Path</p>
+                        `
+                      })
 
-    // ⭐ SEND ADMIN NOTIFICATION
-    await sendEmail({
-      to: 'info@mindspringpath.com.au',
-      subject: 'Appointment Cancelled',
-      html: `
-        <h2>Appointment Cancelled</h2>
-        <p><strong>Name:</strong> ${appt.full_name}</p>
-        <p><strong>Email:</strong> ${appt.email}</p>
-        <p><strong>Date:</strong> ${appt.date}</p>
-        <p><strong>Time:</strong> ${appt.time}</p>
-        <p><strong>Session:</strong> ${appt.session_type}</p>
-      `
-    })
+                      // Email admin
+                      await sendEmail({
+                        to: 'info@mindspringpath.com.au',
+                        subject: 'Appointment Cancelled',
+                        html: `
+                          <h2>Appointment Cancelled</h2>
+                          <p><strong>Name:</strong> ${appt.full_name}</p>
+                          <p><strong>Email:</strong> ${appt.email}</p>
+                          <p><strong>Date:</strong> ${appt.date}</p>
+                          <p><strong>Time:</strong> ${appt.time}</p>
+                          <p><strong>Session:</strong> ${appt.session_type}</p>
+                        `
+                      })
 
-    // Update UI instantly
-    setAppointments(prev =>
-      prev.map(a =>
-        a.id === appt.id ? { ...a, status: 'cancelled' } : a
-      )
-    )
-  }}
->
-  Cancel
-</Button>
+                      setAppointments((prev) =>
+                        prev.map((a) => (a.id === appt.id ? { ...a, status: 'cancelled' } : a))
+                      )
+                    }}
+                  >
+                    Cancel
+                  </Button>
 
-            {reschedule && (
-  <RescheduleModal
-    appt={reschedule}
-    onClose={() => setReschedule(null)}
-    onUpdated={(updated) =>
-      setAppointments(prev =>
-        prev.map(a => (a.id === updated.id ? updated : a))
-      )
-    }
-  />
-)}
-                <Button
-                  className="btn-mindspring-primary"
-                  onClick={() => setReschedule(appt)}
-                >
-                  Reschedule
-                </Button>
-
+                  <Button
+                    className="btn-mindspring-primary"
+                    onClick={() => setReschedule(appt)}
+                  >
+                    Reschedule
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </div>
-
       </div>
+
+      {reschedule && (
+        <RescheduleModal
+          appt={reschedule}
+          onClose={() => setReschedule(null)}
+          onUpdated={(updated: any) =>
+            setAppointments((prev) => prev.map((a) => (a.id === updated.id ? updated : a)))
+          }
+        />
+      )}
     </div>
   )
 }
