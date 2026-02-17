@@ -9,6 +9,10 @@ export type ProgramEnrollment = Database['public']['Tables']['program_enrolments
 // AUTHENTICATION HELPERS
 // -----------------------------
 export async function signUp(email: string, password: string, fullName: string) {
+  const redirectUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/auth/callback`
+    : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/auth/callback`
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -16,7 +20,7 @@ export async function signUp(email: string, password: string, fullName: string) 
       data: {
         full_name: fullName,
       },
-      emailRedirectTo: `${window.location.origin}/auth/callback`
+      emailRedirectTo: redirectUrl
     },
   })
 
@@ -47,8 +51,12 @@ export async function getCurrentUser() {
 }
 
 export async function resetPassword(email: string) {
+  const redirectUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/auth/reset-password`
+    : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/auth/reset-password`
+
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/auth/reset-password`,
+    redirectTo: redirectUrl,
   })
 
   if (error) throw error

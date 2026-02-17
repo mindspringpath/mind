@@ -18,8 +18,8 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const token = searchParams.get('token')
-    if (!token) {
+    const code = searchParams.get('code')
+    if (!code) {
       setError('Invalid or expired reset token')
       return
     }
