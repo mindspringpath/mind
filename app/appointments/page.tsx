@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { supabase, getCurrentUser } from '@/lib/auth-helpers'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { sendEmail } from '@/lib/email'
 import RescheduleModal from '@/components/booking/RescheduleModal'
 
 export default function AppointmentsPage() {
@@ -145,19 +144,15 @@ export default function AppointmentsPage() {
                       }
 
                       // Email client
-                      await sendEmail({
-                        to: appt.email,
-                        subject: 'Your MindSpring Path Appointment Has Been Cancelled',
-                        html: `
-                          <h2>Your appointment has been cancelled</h2>
-                          <p><strong>Date:</strong> ${appt.date}</p>
-                          <p><strong>Time:</strong> ${appt.time}</p>
-                          <p><strong>Session Type:</strong> ${appt.session_type}</p>
-                          <br/>
-                          <p>If this was a mistake, you can book again anytime.</p>
-                          <p>MindSpring Path</p>
-                        `
-                      })
+                      await fetch('/api/send-email', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    kind: 'appointment_cancelled',
+    appointment: appt
+  })
+})
+
 
                       // Email admin
                       await sendEmail({
