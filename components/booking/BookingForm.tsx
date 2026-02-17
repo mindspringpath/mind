@@ -111,12 +111,12 @@ const appointment = await createAppointment({
   user_id: user?.id || null,
   date: selectedDate,
   time: selectedTime,
-  session_type,
+  session_type: selectedService,   // <-- THIS IS THE REAL VALUE
   status: "pending",
-  full_name: fullName || null,
-  email: email || null,
-  phone: phone || null,
-  notes: notes || null
+  full_name: formData.fullName || null,
+  email: formData.email || null,
+  phone: formData.phone || null,
+  notes: formData.notes || null
 });
 
       // Send confirmation email
