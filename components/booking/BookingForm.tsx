@@ -420,7 +420,7 @@ export default function BookingForm() {
                 <div className="border-t border-graphite pt-4">
                   <p className="text-sm text-softwhite/70">
                     Have an account?{' '}
-                    <a href="/login" className="text-softwhite hover:text-white font-medium">
+                    <a href="/auth/login" className="text-softwhite hover:text-white font-medium">
                       Sign in
                     </a>{' '}
                     for faster booking.

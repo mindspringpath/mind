@@ -14,7 +14,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // Check if user is already logged in
+    // Only check auth on client side
+    if (typeof window === 'undefined') return
+    
     const checkAuth = async () => {
       try {
         const user = await getCurrentUser()
@@ -35,14 +37,27 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await signIn(email, password)
-      // Redirect to dashboard will be handled by middleware or client-side check
-      router.replace('/dashboard')
-    } catch (err: any) {
-      if (err.message?.includes('Invalid login credentials')) {
-        setError('Invalid email or password. Please try again.')
+      const result = await signIn(email, password)
+      
+      // Check if login was successful
+      if (result.user) {
+        router.replace('/dashboard')
       } else {
-        setError(err.message || 'Login failed. Please try again.')
+        setError('Login failed. Please try again.')
+      }
+    } catch (err: any) {
+      const msg = err?.message || ''
+
+      if (msg.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please try again.')
+      } else if (msg.includes('Email not confirmed')) {
+        setError('Please verify your email before logging in.')
+      } else if (msg.includes('User not found')) {
+        setError('No account found with this email.')
+      } else if (msg.includes('can only be called on the client side')) {
+        setError('Login is only available in the browser.')
+      } else {
+        setError(msg || 'Login failed. Please try again.')
       }
     } finally {
       setLoading(false)
@@ -68,13 +83,11 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-softwhite mb-2">
+              <label className="block text-sm font-medium text-softwhite mb-2">
                 Email Address
               </label>
               <input
-                id="email"
                 type="email"
-                placeholder="Enter your email"
                 className="mindspring-input w-full"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -83,14 +96,12 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-softwhite mb-2">
+              <label className="block text-sm font-medium text-softwhite mb-2">
                 Password
               </label>
               <div className="relative">
                 <input
-                  id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
                   className="mindspring-input w-full pr-12"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -101,7 +112,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 text-softwhite/60 hover:text-softwhite"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff /> : <Eye />}
                 </button>
               </div>
             </div>
@@ -111,11 +122,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-primary text-white py-3 rounded-lg font-medium"
             >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-              ) : (
-                'Sign In'
-              )}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Sign In'}
             </button>
           </form>
 
@@ -123,16 +130,16 @@ export default function LoginPage() {
             <p className="text-softwhite/70">
               Don't have an account?{' '}
               <span
-                onClick={() => router.replace('/auth/register')}
+                onClick={() => router.push('/auth/register')}
                 className="text-primary cursor-pointer hover:underline"
               >
                 Sign Up
               </span>
             </p>
-            
+
             <p className="text-softwhite/70">
               <span
-                onClick={() => router.replace('/auth/forgot-password')}
+                onClick={() => router.push('/auth/forgot-password')}
                 className="text-primary cursor-pointer hover:underline"
               >
                 Forgot Password?

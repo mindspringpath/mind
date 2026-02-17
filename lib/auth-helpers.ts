@@ -55,6 +55,11 @@ export async function signOut() {
 }
 
 export async function getCurrentUser() {
+  // Only run on client side
+  if (typeof window === 'undefined') {
+    throw new Error('getCurrentUser can only be called on the client side')
+  }
+
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error) throw error
   return user
