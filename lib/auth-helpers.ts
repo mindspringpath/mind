@@ -1,7 +1,73 @@
+import { supabase } from './supabase'
+import type { Database } from './supabase'
+
+export type User = Database['public']['Tables']['users']['Row']
+export type Appointment = Database['public']['Tables']['appointments']['Row']
+export type ProgramEnrollment = Database['public']['Tables']['program_enrolments']['Row']
+
+// -----------------------------
+// AUTHENTICATION HELPERS
+// -----------------------------
+export async function signUp(email: string, password: string, fullName: string) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
+      },
+      emailRedirectTo: `${window.location.origin}/auth/callback`
+    },
+  })
+
+  if (error) throw error
+  return data
+}
+
+export async function signIn(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error) throw error
+  return data
+}
+
+export async function signOut() {
+  const { error } = await supabase.auth.signOut()
+  if (error) throw error
+  return true
+}
+
+export async function getCurrentUser() {
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error) throw error
+  return user
+}
+
+export async function resetPassword(email: string) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/auth/reset-password`,
+  })
+
+  if (error) throw error
+  return data
+}
+
+export async function updatePassword(newPassword: string) {
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword
+  })
+
+  if (error) throw error
+  return data
+}
+
 // -----------------------------
 // APPOINTMENT HELPERS
 // -----------------------------
-export async function createAppointment(appointment) {
+export async function createAppointment(appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>) {
   const { data, error } = await supabase
     .from('appointments')
     .insert(appointment)
@@ -12,7 +78,7 @@ export async function createAppointment(appointment) {
   return data
 }
 
-export async function getUserAppointments(userId) {
+export async function getUserAppointments(userId: string) {
   const { data, error } = await supabase
     .from('appointments')
     .select('*')
@@ -24,7 +90,7 @@ export async function getUserAppointments(userId) {
   return data || []
 }
 
-export async function updateAppointment(id, updates) {
+export async function updateAppointment(id: string, updates: Partial<Appointment>) {
   const { data, error } = await supabase
     .from('appointments')
     .update(updates)
@@ -36,14 +102,14 @@ export async function updateAppointment(id, updates) {
   return data
 }
 
-export async function cancelAppointment(id) {
+export async function cancelAppointment(id: string) {
   return updateAppointment(id, { status: 'cancelled' })
 }
 
 // -----------------------------
 // PROGRAM ENROLLMENT HELPERS
 // -----------------------------
-export async function createProgramEnrollment(enrollment) {
+export async function createProgramEnrollment(enrollment: Omit<ProgramEnrollment, 'id' | 'created_at' | 'updated_at'>) {
   const { data, error } = await supabase
     .from('program_enrolments')
     .insert(enrollment)
@@ -54,7 +120,7 @@ export async function createProgramEnrollment(enrollment) {
   return data
 }
 
-export async function getUserProgramEnrollments(userId) {
+export async function getUserProgramEnrollments(userId: string) {
   const { data, error } = await supabase
     .from('program_enrolments')
     .select('*')
@@ -66,16 +132,22 @@ export async function getUserProgramEnrollments(userId) {
 }
 
 // -----------------------------
-// EMAIL & SMS PLACEHOLDERS
+// EMAIL & SMS HELPERS
 // -----------------------------
-export async function sendEmailConfirmation(appointmentId) {
+export async function sendEmailConfirmation(appointmentId: string) {
   console.log('Email confirmation sent for appointment:', appointmentId)
+  // TODO: Implement actual email sending
+  return true
 }
 
-export async function sendEmailReminder(appointmentId) {
+export async function sendEmailReminder(appointmentId: string) {
   console.log('Email reminder sent for appointment:', appointmentId)
+  // TODO: Implement actual email sending
+  return true
 }
 
-export async function sendSMSReminder(appointmentId, phoneNumber) {
+export async function sendSMSReminder(appointmentId: string, phoneNumber: string) {
   console.log('SMS reminder sent to:', phoneNumber, 'for appointment:', appointmentId)
+  // TODO: Implement actual SMS sending
+  return true
 }

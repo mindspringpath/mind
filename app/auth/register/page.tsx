@@ -30,7 +30,7 @@ export default function RegisterPage() {
 
       // Redirect to login after a short delay
       setTimeout(() => {
-        router.replace('/login')
+        router.replace('/auth/login')
       }, 1500)
     } catch (err: any) {
       if (err.message?.includes('User already registered')) {
@@ -105,7 +105,7 @@ export default function RegisterPage() {
       <p className="text-softwhite/70 text-center mt-6">
         Already have an account?{' '}
         <span
-          onClick={() => router.push('/login')}
+          onClick={() => router.replace('/auth/login')}
           className="text-primary cursor-pointer hover:underline"
         >
           Sign In

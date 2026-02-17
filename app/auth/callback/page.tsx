@@ -1,31 +1,46 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Loader2 } from 'lucide-react'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const handleCallback = async () => {
-      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(
-        window.location.href
-      )
+      const code = searchParams.get('code')
+      const next = searchParams.get('next')
 
-      if (exchangeError) {
-        setError('Verification link is invalid or expired.')
+      if (!code) {
+        setError('No verification code provided.')
         return
       }
 
-      // Redirect to login after successful verification
-      router.replace('/login')
+      try {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+        if (exchangeError) {
+          setError('Verification link is invalid or expired.')
+          return
+        }
+
+        // Redirect to login after successful verification
+        if (next) {
+          router.replace(next)
+        } else {
+          router.replace('/auth/login')
+        }
+      } catch (err: any) {
+        setError('Verification failed. Please try again.')
+      }
     }
 
     handleCallback()
-  }, [router])
+  }, [router, searchParams])
 
   if (error) {
     return (
@@ -33,7 +48,7 @@ export default function AuthCallbackPage() {
         <h1 className="text-2xl font-bold text-red-500 mb-4">Verification Error</h1>
         <p className="text-softwhite/80 mb-6">{error}</p>
         <button
-          onClick={() => router.push('/login')}
+          onClick={() => router.replace('/auth/login')}
           className="px-6 py-3 bg-primary text-white rounded-lg"
         >
           Go to Login
