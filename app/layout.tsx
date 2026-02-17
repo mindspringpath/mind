@@ -1,10 +1,12 @@
-'use client'
-
 import './globals.css'
 import { Inter } from 'next/font/google'
 import ScrollToTopButton from '@/components/ScrollToTopButton'
+import { metadata } from './metadata'
 
 const inter = Inter({ subsets: ['latin'] })
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default function RootLayout({
   children,
