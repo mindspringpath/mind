@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Logo from '@/components/Logo'
-import { getCurrentUser, signOut } from '@/lib/auth-helpers'
+import { getCurrentUser, signOut, supabase } from '@/lib/auth-helpers'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -21,18 +21,29 @@ export default function Header() {
     { name: 'Book Session', href: '/booking' },
   ]
 
-  // Load logged-in user
+  // 🔥 Load user + listen for login/logout events
   useEffect(() => {
     const loadUser = async () => {
       const current = await getCurrentUser()
       setUser(current)
       setLoadingUser(false)
     }
+
     loadUser()
+
+    // Listen for auth state changes (login, logout, refresh)
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      loadUser()
+    })
+
+    return () => {
+      listener.subscription.unsubscribe()
+    }
   }, [])
 
   const handleLogout = async () => {
     await signOut()
+    setUser(null)
     window.location.href = '/login'
   }
 
