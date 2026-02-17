@@ -9,6 +9,11 @@ export type ProgramEnrollment = Database['public']['Tables']['program_enrolments
 // AUTHENTICATION HELPERS
 // -----------------------------
 export async function signUp(email: string, password: string, fullName: string) {
+  // Only run on client side
+  if (typeof window === 'undefined') {
+    throw new Error('signUp can only be called on the client side')
+  }
+
   const redirectUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/auth/callback`
     : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/auth/callback`
@@ -29,6 +34,11 @@ export async function signUp(email: string, password: string, fullName: string) 
 }
 
 export async function signIn(email: string, password: string) {
+  // Only run on client side
+  if (typeof window === 'undefined') {
+    throw new Error('signIn can only be called on the client side')
+  }
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -51,6 +61,11 @@ export async function getCurrentUser() {
 }
 
 export async function resetPassword(email: string) {
+  // Only run on client side
+  if (typeof window === 'undefined') {
+    throw new Error('resetPassword can only be called on the client side')
+  }
+
   const redirectUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/auth/reset-password`
     : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/auth/reset-password`
@@ -64,6 +79,11 @@ export async function resetPassword(email: string) {
 }
 
 export async function updatePassword(newPassword: string) {
+  // Only run on client side
+  if (typeof window === 'undefined') {
+    throw new Error('updatePassword can only be called on the client side')
+  }
+
   const { data, error } = await supabase.auth.updateUser({
     password: newPassword
   })

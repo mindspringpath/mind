@@ -38,7 +38,7 @@ export default function ResetPasswordPage() {
     setLoading(true)
 
     try {
-      const token = searchParams.get('token')
+      const code = searchParams.get('code')
       await updatePassword(password)
       setSuccess(
         'Password has been reset successfully! You can now sign in with your new password.'
@@ -46,7 +46,7 @@ export default function ResetPasswordPage() {
 
       // Redirect to login after a short delay
       setTimeout(() => {
-        router.replace('/login')
+        router.replace('/auth/login')
       }, 2000)
     } catch (err: any) {
       setError(err.message || 'Failed to reset password. Please try again.')
