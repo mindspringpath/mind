@@ -4,15 +4,19 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/auth-helpers'
 
-type Props = {
-  appt: any
+type RescheduleModalProps = {
+  appt: {
+    id: string | number
+    date: string
+    time: string
+  } & Record<string, any>
   onClose: () => void
   onUpdated: (updated: any) => void
 }
 
-export default function RescheduleModal({ appt, onClose, onUpdated }: Props) {
-  const [date, setDate] = useState(appt?.date ?? '')
-  const [time, setTime] = useState(appt?.time ?? '')
+export default function RescheduleModal({ appt, onClose, onUpdated }: RescheduleModalProps) {
+  const [date, setDate] = useState<string>(appt?.date ?? '')
+  const [time, setTime] = useState<string>(appt?.time ?? '')
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
@@ -36,6 +40,13 @@ export default function RescheduleModal({ appt, onClose, onUpdated }: Props) {
       alert('Could not reschedule appointment.')
       return
     }
+
+    // (Optional) notify via API route if you want emails on reschedule:
+    // await fetch('/api/send-email', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ kind: 'appointment_rescheduled', appointment: data })
+    // })
 
     onUpdated(data)
     onClose()

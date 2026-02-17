@@ -22,7 +22,6 @@ export default function BookingForm() {
     sessionType: 'Initial Consultation'
   })
 
-  // Load user + listen for login/logout/signup
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -31,19 +30,21 @@ export default function BookingForm() {
         if (currentUser) {
           setUser(currentUser)
 
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             fullName: prev.fullName || currentUser.user_metadata?.full_name || '',
             email: prev.email || currentUser.email || '',
             phone: prev.phone || '',
             notes: prev.notes || ''
           }))
+        } else {
+          setUser(null)
         }
-      } catch (err) {
-        console.log('No user logged in')
+      } catch {
+        setUser(null)
+      } finally {
+        setLoadingUser(false)
       }
-
-      setLoadingUser(false)
     }
 
     loadUser()
@@ -59,17 +60,26 @@ export default function BookingForm() {
 
   const handleChange = (e: any) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
+    if (submitting) return
+
     setSubmitting(true)
 
     try {
       const currentUser = await getCurrentUser()
 
-      // 1) Check for existing booking at same date+time
+      // Basic validation
+      if (!formData.date || !formData.time) {
+        alert('Please select a date and time.')
+        setSubmitting(false)
+        return
+      }
+
+      // 1) Check for existing booking at same date+time (not cancelled)
       const { data: existing, error: existingError } = await supabase
         .from('appointments')
         .select('id')
@@ -85,43 +95,47 @@ export default function BookingForm() {
         return
       }
 
-      // 2) Create appointment
-      const { data, error } = await supabase
+      // 2) Insert appointment + return inserted row
+      const payload = {
+        user_id: currentUser?.id || null,
+        full_name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        notes: formData.notes,
+        date: formData.date,
+        time: formData.time,
+        session_type: formData.sessionType,
+        status: 'pending',
+        updated_at: new Date().toISOString()
+      }
+
+      const { data: insertedAppointment, error: insertError } = await supabase
         .from('appointments')
-        .insert({
-          user_id: currentUser?.id || null,
-          full_name: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          notes: formData.notes,
-          date: formData.date,
-          time: formData.time,
-          session_type: formData.sessionType,
-          status: 'pending'
-        })
+        .insert(payload)
+        .select('*')
+        .single()
 
-      if (error) throw error
+      if (insertError || !insertedAppointment) {
+        throw insertError || new Error('Insert failed')
+      }
 
-      // ⭐⭐⭐ SEND BOOKING CONFIRMATION EMAIL ⭐⭐⭐
+      // 3) Send booking emails via server API route (NOT nodemailer in client)
       await fetch('/api/send-email', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    kind: 'booking_created',
-    appointment: newAppointmentObject
-  })
-})
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'booking_created',
+          appointment: insertedAppointment
+        })
+      })
 
-
-      // Redirect to success page
       router.push('/booking/success')
-
     } catch (err) {
       console.error('Booking error:', err)
       alert('Something went wrong while booking your session.')
+    } finally {
+      setSubmitting(false)
     }
-
-    setSubmitting(false)
   }
 
   return (
@@ -129,9 +143,13 @@ export default function BookingForm() {
       onSubmit={handleSubmit}
       className="space-y-6 bg-charcoal p-6 rounded-xl border border-graphite"
     >
-      <h2 className="text-2xl font-bold text-softwhite mb-4">
-        Book Your Session
-      </h2>
+      <h2 className="text-2xl font-bold text-softwhite mb-4">Book Your Session</h2>
+
+      {loadingUser && (
+        <div className="text-softwhite/60 text-sm">
+          Loading your details...
+        </div>
+      )}
 
       {/* Full Name */}
       <div>
