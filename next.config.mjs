@@ -14,9 +14,7 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  experimental: {
-    optimizeCss: true,
-  },
+  // Removed optimizeCss because it forces static export behavior
 }
 
 export default nextConfig
