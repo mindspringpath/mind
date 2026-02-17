@@ -69,30 +69,26 @@ export default function SignUpForm() {
 
   return (
     <div>
-      {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-center text-softwhite mb-8 tracking-tight">
-            Create Your MindSpring Path Account
-          </h2>
+        <h2 className="text-2xl font-bold text-softwhite mb-8 tracking-tight">
+          Create Your MindSpring Path Account
+        </h2>
         <p className="text-softwhite/70">Start your transformation journey today</p>
       </div>
 
-      {/* Error Display */}
       {error && (
         <div className="mb-6 p-4 bg-slate border border-graphite rounded-xl">
           <p className="text-softwhite/80 text-sm">{error}</p>
         </div>
       )}
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Full Name */}
         <div>
           <label htmlFor="fullName" className="block text-sm font-medium text-softwhite/80 mb-2">
             Full Name
           </label>
           <div className="relative">
-            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-softwhite/50 w-5 h-5" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-softwhite/50 w-5 h-5" />
             <input
               type="text"
               id="fullName"
@@ -106,13 +102,12 @@ export default function SignUpForm() {
           </div>
         </div>
 
-        {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-softwhite/80 mb-2">
             Email Address
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-softwhite/50 w-5 h-5" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-softwhite/50 w-5 h-5" />
             <input
               type="email"
               id="email"
@@ -126,13 +121,12 @@ export default function SignUpForm() {
           </div>
         </div>
 
-        {/* Password */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-softwhite/80 mb-2">
             Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-softwhite/50 w-5 h-5" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-softwhite/50 w-5 h-5" />
             <input
               type={showPassword ? 'text' : 'password'}
               id="password"
@@ -147,20 +141,19 @@ export default function SignUpForm() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-softwhite/50 hover:text-softwhite transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-softwhite/50 hover:text-softwhite"
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Confirm Password */}
         <div>
           <label htmlFor="confirmPassword" className="block text-sm font-medium text-softwhite/80 mb-2">
             Confirm Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-softwhite/50 w-5 h-5" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-softwhite/50 w-5 h-5" />
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
@@ -175,14 +168,13 @@ export default function SignUpForm() {
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-softwhite/50 hover:text-softwhite transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-softwhite/50 hover:text-softwhite"
             >
               {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Terms Agreement */}
         <div className="flex items-start">
           <input
             type="checkbox"
@@ -192,20 +184,19 @@ export default function SignUpForm() {
           />
           <label htmlFor="terms" className="ml-2 text-sm text-softwhite/70">
             I agree to the{' '}
-            <Link href="/legal/terms-of-service" className="text-softwhite hover:text-white transition-colors">
+            <Link href="/legal/terms-of-service" className="text-softwhite hover:text-white">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="/legal/privacy-policy" className="text-softwhite hover:text-white transition-colors">
+            <Link href="/legal/privacy-policy" className="text-softwhite hover:text-white">
               Privacy Policy
             </Link>
           </label>
         </div>
 
-        {/* Submit Button */}
-        <Button 
-          type="submit" 
-          variant="mindspring-primary" 
+        <Button
+          type="submit"
+          variant="mindspring-primary"
           className="w-full"
           size="lg"
           disabled={isLoading}
@@ -214,14 +205,10 @@ export default function SignUpForm() {
         </Button>
       </form>
 
-      {/* Sign In Link */}
       <div className="mt-6 text-center">
         <p className="text-softwhite/70">
           Already have an account?{' '}
-          <Link 
-            href="/login" 
-            className="text-softwhite hover:text-white font-medium transition-colors"
-          >
+          <Link href="/login" className="text-softwhite hover:text-white font-medium">
             Sign in here
           </Link>
         </p>
