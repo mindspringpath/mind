@@ -165,19 +165,18 @@ export async function createContactMessage(message: {
   try {
     console.log('Creating contact message:', { email: message.email, timestamp: new Date().toISOString() })
     
-    const { data, error } = await supabase
+    // Insert without selecting to avoid RLS recursion issues
+    const { error } = await supabase
       .from('contact_messages')
       .insert(message)
-      .select()
-      .single()
 
     if (error) {
       console.error('Contact message creation error:', error)
       throw error
     }
 
-    console.log('Contact message created successfully:', data?.id)
-    return data
+    console.log('Contact message created successfully')
+    return { success: true }
   } catch (error: any) {
     console.error('Contact message creation exception:', error)
     throw error
@@ -185,27 +184,45 @@ export async function createContactMessage(message: {
 }
 
 export async function getContactMessages() {
-  const { data, error } = await supabase
-    .from('contact_messages')
-    .select('*')
-    .order('created_at', { ascending: false })
+  try {
+    // Select only specific fields to avoid RLS recursion
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('id, full_name, email, phone, message, status, created_at')
+      .order('created_at', { ascending: false })
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.error('Get contact messages error:', error)
+      throw error
+    }
+    
+    return data || []
+  } catch (error: any) {
+    console.error('Get contact messages exception:', error)
+    throw error
+  }
 }
 
 export async function updateContactMessage(id: string, updates: {
   status?: 'new' | 'read' | 'archived'
 }) {
-  const { data, error } = await supabase
-    .from('contact_messages')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single()
+  try {
+    // Update without selecting to avoid RLS recursion
+    const { error } = await supabase
+      .from('contact_messages')
+      .update(updates)
+      .eq('id', id)
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.error('Update contact message error:', error)
+      throw error
+    }
+    
+    return { success: true }
+  } catch (error: any) {
+    console.error('Update contact message exception:', error)
+    throw error
+  }
 }
 
 export async function signUp(email: string, password: string, fullName: string) {
@@ -295,16 +312,28 @@ export async function resetPassword(email: string) {
     throw new Error('resetPassword can only be called on the client side')
   }
 
+  console.log('Password reset requested for:', email)
+
   const redirectUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/auth/reset-password`
     : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/auth/reset-password`
 
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: redirectUrl,
-  })
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    })
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.error('Password reset error:', error)
+      throw error
+    }
+
+    console.log('Password reset email sent successfully')
+    return data
+  } catch (error: any) {
+    console.error('Password reset exception:', error)
+    throw error
+  }
 }
 
 export async function updatePassword(newPassword: string) {

@@ -40,7 +40,7 @@ export default function LoginPage() {
     const timeoutId = setTimeout(() => {
       setError('Login is taking longer than expected. Please try again.')
       setLoading(false)
-    }, 10000) // 10 second timeout
+    }, 30000) // 30 second timeout
 
     try {
       console.log('Login page: Attempting login for:', email)

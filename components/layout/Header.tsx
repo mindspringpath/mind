@@ -59,10 +59,18 @@ export default function Header() {
     'My Account'
 
   const logout = async () => {
-    await supabase.auth.signOut()
-    setOpenAccount(false)
-    setOpenMobile(false)
-    router.push('/home')
+    try {
+      console.log('Header: Logging out user')
+      await supabase.auth.signOut()
+      setOpenAccount(false)
+      setOpenMobile(false)
+      // Force redirect to login page
+      window.location.href = '/auth/login'
+    } catch (error: any) {
+      console.error('Header: Logout error:', error)
+      // Still redirect even if signOut fails
+      window.location.href = '/auth/login'
+    }
   }
 
   return (

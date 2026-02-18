@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createContactMessage } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -32,57 +31,51 @@ export default function ContactPage() {
     try {
       console.log('Contact form: Submitting message from:', formData.email)
       
-      // Save to database first
-      await createContactMessage({
-        full_name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        message: formData.message,
-        status: 'new'
+      // Use API endpoint to avoid RLS recursion issues
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message
+        })
       })
 
-      // Send email notification
-      try {
-        const emailResponse = await fetch('/api/send-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            kind: 'contact_received',
-            data: {
-              fullName: formData.fullName,
-              email: formData.email,
-              phone: formData.phone,
-              message: formData.message
-            }
-          })
-        })
+      clearTimeout(timeoutId)
 
-        if (!emailResponse.ok) {
-          console.error('Contact form: Email notification failed:', await emailResponse.text())
-          setError('Message saved but email notification failed. We will still respond to your message.')
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('Contact form: API error:', errorData)
+        
+        if (response.status === 400) {
+          setError(errorData.error || 'Please check all fields and try again.')
         } else {
-          console.log('Contact form: Message sent successfully')
-          setSuccess('Thank you for your message! We will get back to you soon.')
-          setFormData({
-            fullName: '',
-            email: '',
-            phone: '',
-            message: ''
-          })
+          setError('Failed to send your message. Please try again.')
         }
-      } catch (emailError) {
-        console.error('Contact form: Email notification error:', emailError)
-        // Don't fail the form submission if email fails
-        setSuccess('Thank you for your message! We will get back to you soon.')
-        setFormData({
-          fullName: '',
-          email: '',
-          phone: '',
-          message: ''
-        })
+        return
       }
+
+      const result = await response.json()
+      console.log('Contact form: Message sent successfully:', result.message)
+
+      if (result.emailError) {
+        console.warn('Contact form: Email notification failed:', result.emailError)
+        setError('Message saved but email notification failed. We will still respond to your message.')
+      } else {
+        setSuccess('Thank you for your message! We will get back to you soon.')
+      }
+      
+      setFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        message: ''
+      })
+
     } catch (err: any) {
       clearTimeout(timeoutId)
       console.error('Contact form: Submission error:', err?.message)
@@ -91,10 +84,8 @@ export default function ContactPage() {
         setError('Submission timed out. Please check your connection and try again.')
       } else if (err.message.includes('Network') || err.message.includes('fetch')) {
         setError('Network error. Please check your connection and try again.')
-      } else if (err.message.includes('validation')) {
-        setError('Please check all fields and try again.')
       } else {
-        setError(err.message || 'Failed to send your message. Please try again.')
+        setError('Failed to send your message. Please try again.')
       }
     } finally {
       clearTimeout(timeoutId)

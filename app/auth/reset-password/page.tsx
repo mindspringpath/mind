@@ -28,18 +28,47 @@ export default function ResetPasswordPage() {
       return
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.')
+      return
+    }
+
     setLoading(true)
 
+    // Add timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      setError('Password reset is taking longer than expected. Please try again.')
+      setLoading(false)
+    }, 15000) // 15 second timeout
+
     try {
+      console.log('Reset password: Updating password')
       const { error: updateError } = await supabase.auth.updateUser({ password })
+      clearTimeout(timeoutId)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        console.error('Reset password: Update error:', updateError)
+        throw updateError
+      }
 
+      console.log('Reset password: Password updated successfully')
       setSuccess('Password updated successfully!')
-      setTimeout(() => router.replace('/auth/login'), 1500)
+      setTimeout(() => router.replace('/auth/login'), 2000)
     } catch (err: any) {
-      setError(err.message || 'Failed to update password.')
+      clearTimeout(timeoutId)
+      console.error('Reset password: Error:', err?.message)
+      
+      if (err.message.includes('weak password')) {
+        setError('Password is too weak. Please choose a stronger password.')
+      } else if (err.message.includes('same password')) {
+        setError('New password must be different from the current password.')
+      } else if (err.message.includes('timeout') || err.message.includes('TIMEOUT')) {
+        setError('Password reset timed out. Please try again.')
+      } else {
+        setError(err.message || 'Failed to update password.')
+      }
     } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
     }
   }

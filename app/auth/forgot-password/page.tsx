@@ -18,13 +18,35 @@ export default function ForgotPasswordPage() {
     setSuccess('')
     setLoading(true)
 
+    // Add timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      setError('Password reset is taking longer than expected. Please try again.')
+      setLoading(false)
+    }, 15000) // 15 second timeout
+
     try {
+      console.log('Forgot password: Sending reset email to:', email)
       await resetPassword(email)
+      clearTimeout(timeoutId)
+      
+      console.log('Forgot password: Reset email sent successfully')
       setSuccess('Password reset email sent! Check your inbox.')
-      setTimeout(() => router.replace('/auth/login'), 1500)
+      setTimeout(() => router.replace('/auth/login'), 2000)
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset email.')
+      clearTimeout(timeoutId)
+      console.error('Forgot password: Error:', err?.message)
+      
+      if (err.message.includes('User not found')) {
+        setError('No account found with this email address.')
+      } else if (err.message.includes('timeout') || err.message.includes('TIMEOUT')) {
+        setError('Request timed out. Please check your connection and try again.')
+      } else if (err.message.includes('rate limit') || err.message.includes('too many')) {
+        setError('Too many requests. Please wait a few minutes before trying again.')
+      } else {
+        setError(err.message || 'Failed to send reset email. Please try again.')
+      }
     } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
     }
   }
