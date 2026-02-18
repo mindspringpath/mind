@@ -47,7 +47,13 @@ function createTransporter() {
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
-    }
+    },
+    // Hostinger specific settings
+    tls: {
+      rejectUnauthorized: false // May be needed for some Hostinger configurations
+    },
+    debug: process.env.NODE_ENV === 'development', // Enable debug in development
+    logger: process.env.NODE_ENV === 'development' // Enable logging in development
   })
 }
 

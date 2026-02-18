@@ -126,7 +126,41 @@ export default function BookingForm() {
       }
 
       console.log('Booking form: Time slots fetched:', slots?.length || 0)
-      setTimeSlots(slots || [])
+      
+      // If no slots exist for this date, create default slots
+      if (!slots || slots.length === 0) {
+        console.log('Booking form: No slots found, creating default slots')
+        const defaultSlots = [
+          '9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM'
+        ]
+        
+        const newSlots = []
+        for (const time of defaultSlots) {
+          try {
+            const { data: newSlot, error: createError } = await supabase
+              .from('availability_slots')
+              .insert({
+                coach_id: '00000000-0000-0000-0000-0000-0000-0001',
+                date: date,
+                time: time,
+                is_available: true
+              })
+              .select()
+              .single()
+
+            if (!createError && newSlot) {
+              newSlots.push(newSlot)
+            }
+          } catch (err) {
+            console.error('Booking form: Error creating default slot:', err)
+          }
+        }
+        
+        setTimeSlots(newSlots)
+        console.log('Booking form: Created default slots:', newSlots.length)
+      } else {
+        setTimeSlots(slots || [])
+      }
     } catch (error: any) {
       console.error('Booking form: Exception fetching time slots:', error)
       setError('Failed to load time slots. Please try again.')
@@ -182,6 +216,12 @@ export default function BookingForm() {
         throw new Error('Please fill in all required fields.')
       }
 
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email)) {
+        throw new Error('Please enter a valid email address.')
+      }
+
       // Check if time slot is already booked
       const isAlreadyBooked = await checkExistingBooking()
       if (isAlreadyBooked) {
@@ -208,6 +248,7 @@ export default function BookingForm() {
           .single()
 
         if (slotError) {
+          console.error('Booking form: Slot creation error:', slotError)
           throw new Error('Failed to create time slot. Please try again.')
         }
         
@@ -234,8 +275,11 @@ export default function BookingForm() {
         .single()
 
       if (insertError) {
+        console.error('Booking form: Appointment creation error:', insertError)
         throw new Error('Failed to create appointment. Please try again.')
       }
+
+      console.log('Booking form: Appointment created successfully:', insertedAppointment.id)
 
       // Send email notification
       console.log('Booking form: Sending email notification')
@@ -258,7 +302,8 @@ export default function BookingForm() {
         })
 
         if (!emailResponse.ok) {
-          console.error('Booking form: Email notification failed:', await emailResponse.text())
+          const errorText = await emailResponse.text()
+          console.error('Booking form: Email notification failed:', errorText)
           setError('Booking confirmed but email notification failed. We will still contact you.')
         } else {
           console.log('Booking form: Email notification sent successfully')
@@ -279,7 +324,7 @@ export default function BookingForm() {
             router.push('/booking/success')
           }, 2000)
         }
-      } catch (emailError) {
+      } catch (emailError: any) {
         console.error('Booking form: Email notification error:', emailError)
         // Don't fail the booking if email fails
         setSuccess('Booking confirmed! Check your email for details.')
@@ -299,6 +344,10 @@ export default function BookingForm() {
         setError('Booking timed out. Please check your connection and try again.')
       } else if (err.message.includes('required fields')) {
         setError('Please fill in all required fields.')
+      } else if (err.message.includes('valid email')) {
+        setError('Please enter a valid email address.')
+      } else if (err.message.includes('Failed to create')) {
+        setError('System error. Please try again or contact support.')
       } else {
         setError(err.message || 'Failed to book your session. Please try again.')
       }
