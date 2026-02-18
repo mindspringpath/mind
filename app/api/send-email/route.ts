@@ -4,14 +4,18 @@ import { sendEmail } from '@/lib/email'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { kind, appointment } = body
+    const { kind, appointment, data } = body
 
-    if (!kind || !appointment) {
-      return NextResponse.json({ ok: false, error: 'Missing payload' }, { status: 400 })
+    if (!kind) {
+      return NextResponse.json({ ok: false, error: 'Missing kind' }, { status: 400 })
     }
 
     // ✅ Booking confirmation emails
     if (kind === 'booking_created') {
+      if (!appointment) {
+        return NextResponse.json({ ok: false, error: 'Missing appointment data' }, { status: 400 })
+      }
+
       // client
       if (appointment.email) {
         await sendEmail({
@@ -43,8 +47,35 @@ export async function POST(req: Request) {
       })
     }
 
+    // ✅ Contact form submissions
+    if (kind === 'contact_received') {
+      if (!data) {
+        return NextResponse.json({ ok: false, error: 'Missing contact data' }, { status: 400 })
+      }
+
+      await sendEmail({
+        to: 'info@mindspringpath.com.au',
+        subject: 'New Contact Form Submission',
+        html: `
+          <h2>New Contact Message</h2>
+          <p><strong>Name:</strong> ${data.fullName}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+          ${data.phone ? `<p><strong>Phone:</strong> ${data.phone}</p>` : ''}
+          <p><strong>Message:</strong></p>
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
+            ${data.message.replace(/\n/g, '<br>')}
+          </div>
+          <p><em>Received: ${new Date().toLocaleDateString('en-AU')}</em></p>
+        `
+      })
+    }
+
     // ✅ Cancellation emails (for your appointments page)
     if (kind === 'appointment_cancelled') {
+      if (!appointment) {
+        return NextResponse.json({ ok: false, error: 'Missing appointment data' }, { status: 400 })
+      }
+
       if (appointment.email) {
         await sendEmail({
           to: appointment.email,
@@ -77,7 +108,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {
-    console.error(err)
+    console.error('Email API error:', err)
     return NextResponse.json({ ok: false, error: 'Server error' }, { status: 500 })
   }
 }

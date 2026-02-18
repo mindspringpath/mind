@@ -1,14 +1,193 @@
 import { supabase } from './supabase'
 import type { Database } from './supabase'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export { supabase }
-export type User = Database['public']['Tables']['users']['Row']
+export type User = SupabaseUser
+export type DatabaseUser = Database['public']['Tables']['users']['Row']
 export type Appointment = Database['public']['Tables']['appointments']['Row']
 export type ProgramEnrollment = Database['public']['Tables']['program_enrolments']['Row']
+export type Profile = Database['public']['Tables']['profiles']['Row']
+export type UserRole = Database['public']['Tables']['user_roles']['Row']
+export type AvailabilitySlot = Database['public']['Tables']['availability_slots']['Row']
+export type ContactMessage = Database['public']['Tables']['contact_messages']['Row']
+
+export async function isAdmin(): Promise<boolean> {
+  try {
+    const user = await getCurrentUser()
+    if (!user) return false
+
+    // Check if user has admin role
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+
+    return roleData?.role === 'admin'
+  } catch (error) {
+    return false
+  }
+}
 
 // -----------------------------
-// AUTHENTICATION HELPERS
+// PROFILE HELPERS
 // -----------------------------
+export async function getProfile(userId: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .single()
+
+  if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+    throw error
+  }
+  return data
+}
+
+export async function createProfile(profile: Omit<Profile, 'id' | 'created_at' | 'updated_at'>) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert(profile)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function getUserProfile(userId: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function updateProfile(id: string, updates: Partial<Profile>) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', id)
+    .select()
+
+  if (error) throw error
+  return data
+}
+
+// -----------------------------
+// USER ROLE HELPERS
+// -----------------------------
+export async function assignUserRole(userId: string, role: 'client' | 'coach' | 'admin') {
+  const { data, error } = await supabase
+    .from('user_roles')
+    .insert({ user_id: userId, role })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function getUserRoles(userId: string) {
+  const { data, error } = await supabase
+    .from('user_roles')
+    .select('*')
+    .eq('user_id', userId)
+
+  if (error) throw error
+  return data
+}
+
+// -----------------------------
+// AVAILABILITY HELPERS
+// -----------------------------
+export async function createAvailabilitySlot(slot: Omit<AvailabilitySlot, 'id' | 'created_at' | 'updated_at'>) {
+  const { data, error } = await supabase
+    .from('availability_slots')
+    .insert(slot)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function getAvailabilitySlots(date?: string) {
+  let query = supabase
+    .from('availability_slots')
+    .select('*')
+    .eq('is_active', true)
+    
+  if (date) {
+    query = query.eq('slot_date', date)
+  }
+  
+  const { data, error } = await query.order('slot_time', { ascending: true })
+
+  if (error) throw error
+  return data
+}
+
+export async function updateAvailabilitySlot(id: string, updates: Partial<AvailabilitySlot>) {
+  const { data, error } = await supabase
+    .from('availability_slots')
+    .update(updates)
+    .eq('id', id)
+    .select()
+
+  if (error) throw error
+  return data
+}
+
+// -----------------------------
+// CONTACT MESSAGE HELPERS
+// -----------------------------
+export async function createContactMessage(message: {
+  full_name: string
+  email: string
+  phone?: string
+  message: string
+  status?: 'new' | 'read' | 'archived'
+}) {
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .insert(message)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function getContactMessages() {
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export async function updateContactMessage(id: string, updates: {
+  status?: 'new' | 'read' | 'archived'
+}) {
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
 export async function signUp(email: string, password: string, fullName: string) {
   // Only run on client side
   if (typeof window === 'undefined') {
@@ -55,7 +234,7 @@ export async function signOut() {
   return true
 }
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<User | null> {
   // Only run on client side
   if (typeof window === 'undefined') {
     throw new Error('getCurrentUser can only be called on the client side')
@@ -63,7 +242,7 @@ export async function getCurrentUser() {
 
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error) throw error
-  return user
+  return user || null
 }
 
 export async function resetPassword(email: string) {

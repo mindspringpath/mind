@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { supabase, getCurrentUser } from '@/lib/auth-helpers'
+import { supabase, getCurrentUser, isAdmin } from '@/lib/auth-helpers'
 import { Button } from '@/components/ui/button'
 import { LockClosedIcon } from '@heroicons/react/24/solid'
 import RescheduleModal from '@/components/booking/RescheduleModal'
-
-const ADMIN_EMAIL = 'mindspringpath@gmail.com'
 
 function SystemPanel() {
   const [dbStatus, setDbStatus] = useState<'unknown' | 'online' | 'offline'>('unknown')
@@ -93,7 +91,7 @@ export default function AdminAppointmentsPage() {
 
       const currentUser = await getCurrentUser()
 
-      if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+      if (!currentUser || !(await isAdmin())) {
         setUser(null)
         setLoading(false)
         return
