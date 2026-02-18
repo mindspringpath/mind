@@ -36,7 +36,7 @@ export default function ClientDashboard() {
       try {
         const currentUser = await getCurrentUser()
         if (!currentUser) {
-          window.location.href = '/login'
+          window.location.href = '/auth/login'
           return
         }
 

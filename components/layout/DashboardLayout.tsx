@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { 
@@ -15,10 +15,37 @@ import {
   Target
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { supabase, getCurrentUser } from '@/lib/auth-helpers'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const currentUser = await getCurrentUser()
+        if (!currentUser) {
+          router.replace('/auth/login')
+          return
+        }
+        setUser(currentUser)
+      } catch (error) {
+        router.replace('/auth/login')
+      }
+    }
+
+    checkAuth()
+
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      checkAuth()
+    })
+
+    return () => {
+      listener.subscription.unsubscribe()
+    }
+  }, [router])
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -28,9 +55,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ]
 
-  const handleLogout = () => {
-    // TODO: Implement logout logic with Supabase
-    router.push('/login')
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+      router.replace('/auth/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+      router.replace('/auth/login')
+    }
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-charcoal text-softwhite flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -86,11 +129,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="p-4 border-t border-graphite">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-semibold">
-                  JD
+                  {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-softwhite">John Doe</div>
-                  <div className="text-sm text-softwhite/60">john.doe@example.com</div>
+                  <div className="font-medium text-softwhite">
+                    {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
+                  </div>
+                  <div className="text-sm text-softwhite/60">{user?.email || ''}</div>
                 </div>
               </div>
               <Button

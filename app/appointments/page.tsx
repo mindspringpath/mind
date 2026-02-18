@@ -69,7 +69,7 @@ export default function AppointmentsPage() {
         <p className="text-softwhite/70 mb-6">
           Please log in to view your booked sessions.
         </p>
-        <Link href="/login">
+        <Link href="/auth/login">
           <Button className="btn-mindspring-primary px-6 py-3">
             Login
           </Button>

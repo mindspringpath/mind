@@ -67,10 +67,10 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-graphite bg-charcoal/90 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-3">
+      <div className="mx-auto max-w-6xl px-4 py-2 md:py-3 lg:py-4 flex items-center justify-between gap-3">
         {/* Brand */}
         <Link href="/home" className="flex items-center gap-2">
-          <Logo variant="dark" className="h-10 w-auto" />
+          <Logo variant="dark" className="h-12 w-auto md:h-14 lg:h-20 xl:h-24" />
         </Link>
 
         {/* Desktop nav */}
