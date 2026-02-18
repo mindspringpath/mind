@@ -15,7 +15,7 @@ import {
   Target
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { supabase, getCurrentUser } from '@/lib/auth-helpers'
+import { supabase, getCurrentUser, signOut } from '@/lib/auth-helpers'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -57,10 +57,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut()
+      console.log('Dashboard: Logging out user')
+      await signOut()
       router.replace('/auth/login')
-    } catch (error) {
-      console.error('Logout error:', error)
+    } catch (error: any) {
+      console.error('Dashboard: Logout error:', error)
       router.replace('/auth/login')
     }
   }

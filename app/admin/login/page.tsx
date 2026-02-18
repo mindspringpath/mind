@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
         
         if (adminStatus) {
           console.log('Admin login: User is admin, redirecting to dashboard')
-          router.replace('/admin/appointments')
+          router.replace('/admin')
         } else {
           console.log('Admin login: User is not admin, showing access denied')
         }

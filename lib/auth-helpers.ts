@@ -290,9 +290,26 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
-  return true
+  // Only run on client side
+  if (typeof window === 'undefined') {
+    throw new Error('signOut can only be called on the client side')
+  }
+
+  try {
+    console.log('Auth helpers: Signing out user')
+    const { error } = await supabase.auth.signOut()
+    
+    if (error) {
+      console.error('Auth helpers: SignOut error:', error)
+      throw error
+    }
+    
+    console.log('Auth helpers: SignOut successful')
+    return { success: true }
+  } catch (error: any) {
+    console.error('Auth helpers: SignOut exception:', error)
+    throw error
+  }
 }
 
 export async function getCurrentUser(): Promise<User | null> {

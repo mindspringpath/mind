@@ -2,9 +2,9 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useMemo, useState, useRef } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
-import { supabase, getCurrentUser, isAdmin } from '@/lib/auth-helpers'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { supabase, User, signOut, getCurrentUser, isAdmin } from '@/lib/auth-helpers'
 import { Button } from '@/components/ui/button'
 import Logo from '@/components/Logo'
 
@@ -61,9 +61,10 @@ export default function Header() {
   const logout = async () => {
     try {
       console.log('Header: Logging out user')
-      await supabase.auth.signOut()
+      await signOut()
       setOpenAccount(false)
       setOpenMobile(false)
+      
       // Force redirect to login page
       window.location.href = '/auth/login'
     } catch (error: any) {
@@ -162,7 +163,7 @@ export default function Header() {
 
                     {admin && (
                       <Link
-                        href="/admin/appointments"
+                        href="/admin"
                         className="block px-3 py-2 rounded-lg text-sm text-softwhite/80 hover:bg-graphite/40"
                         onClick={() => setOpenAccount(false)}
                       >
