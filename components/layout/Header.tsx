@@ -1,138 +1,250 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import Logo from '@/components/Logo'
-import { getCurrentUser, isAdmin, signOut, supabase, getProfile } from '@/lib/auth-helpers'
+import { useEffect, useMemo, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { supabase, getCurrentUser, isAdmin } from '@/lib/auth-helpers'
+import { Button } from '@/components/ui/button'
+
+type NavItem = { href: string; label: string }
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const pathname = usePathname()
+  const router = useRouter()
+
   const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
-  const [loadingUser, setLoadingUser] = useState(true)
+  const [admin, setAdmin] = useState(false)
+  const [openMobile, setOpenMobile] = useState(false)
+  const [openAccount, setOpenAccount] = useState(false)
 
-  const loadUserData = async () => {
-    try {
-      const currentUser = await getCurrentUser()
-      if (!currentUser) {
-        setLoadingUser(false)
-        return
-      }
-
-      let userProfile = null
-      try {
-        userProfile = await getProfile(currentUser.id)
-      } catch (profileError) {
-        console.log('Profile not found:', profileError)
-      }
-
-      const adminCheck = await isAdmin()
-      setUser({ ...currentUser, isAdmin: adminCheck })
-      setProfile(userProfile)
-      setLoadingUser(false)
-    } catch (error) {
-      console.error('Error loading user:', error)
-      setLoadingUser(false)
-    }
-  }
+  const nav: NavItem[] = useMemo(
+    () => [
+      { href: '/home', label: 'Home' },
+      { href: '/about', label: 'About' },
+      { href: '/services', label: 'What we offer' },
+      { href: '/contact', label: 'Contact' },
+    ],
+    []
+  )
 
   useEffect(() => {
-    loadUserData()
-  }, [])
-
-  useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      loadUserData()
-    })
-
-    return () => {
-      listener.subscription.unsubscribe()
+    const load = async () => {
+      const u = await getCurrentUser()
+      setUser(u || null)
+      setAdmin(u ? await isAdmin() : false)
     }
+    load()
+
+    const { data } = supabase.auth.onAuthStateChange(() => load())
+    return () => data.subscription.unsubscribe()
   }, [])
 
-  const handleLogout = async () => {
-    await signOut()
-    setUser(null)
-    setProfile(null)
-    window.location.href = '/login'
-  }
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')?.[0] ||
+    'My Account'
 
-  const displayName = profile?.first_name || user?.user_metadata?.full_name || user?.email || 'User'
-  const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+  const logout = async () => {
+    await supabase.auth.signOut()
+    setOpenAccount(false)
+    setOpenMobile(false)
+    router.push('/home')
+  }
 
   return (
-    <header className="fixed top-0 w-full bg-charcoal/95 backdrop-blur-sm border-b border-graphite z-50">
-      <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          <Link href="/home" className="flex items-center space-x-3 group">
-            <Logo variant="dark" className="h-16 w-auto sm:h-16 sm:w-auto" />
-          </Link>
+    <header className="sticky top-0 z-50 border-b border-graphite bg-charcoal/90 backdrop-blur">
+      <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-3">
+        {/* Brand */}
+        <Link href="/home" className="flex items-center gap-2">
+          <div className="relative h-9 w-32 sm:h-10 sm:w-36">
+            <Image
+              src="/logo.png"
+              alt="MindSpring Path"
+              fill
+              priority
+              className="object-contain"
+              sizes="(max-width: 640px) 128px, 144px"
+            />
+          </div>
+        </Link>
 
-          {loadingUser ? (
-            <div className="flex items-center space-x-1">
-              <div className="h-2 w-2 bg-softwhite rounded-full animate-pulse"></div>
-              <span className="text-softwhite text-sm">Loading...</span>
-            </div>
-          ) : user ? (
-            <div className="flex items-center space-x-4">
-              <span className="text-softwhite/80">Welcome back, {displayName}</span>
-              
-              <div className="relative">
-                <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="flex items-center text-sm text-softwhite/80 hover:text-softwhite px-3 py-2 rounded-md hover:bg-slate"
-                >
-                  {initials}
-                  <span className="ml-2">{isMenuOpen ? '▲' : '▼'}</span>
-                </button>
-                
-                {isMenuOpen && (
-                  <div className="absolute right-0 mt-3 w-48 bg-charcoal border border-graphite rounded-xl shadow-xl py-2 z-50">
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-6">
+          {nav.map((item) => {
+            const active = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={
+                  'text-sm transition ' +
+                  (active ? 'text-softwhite' : 'text-softwhite/70 hover:text-softwhite')
+                }
+              >
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Right side */}
+        <div className="hidden md:flex items-center gap-3">
+          {!user ? (
+            <>
+              <Link href="/auth/login">
+                <Button variant="outline" className="btn-mindspring-outline">
+                  Login
+                </Button>
+              </Link>
+              <Link href="/auth/register">
+                <Button className="btn-mindspring-primary">Sign up</Button>
+              </Link>
+            </>
+          ) : (
+            <div className="relative">
+              <Button
+                className="btn-mindspring-outline"
+                variant="outline"
+                onClick={() => setOpenAccount((v) => !v)}
+              >
+                My Account
+              </Button>
+
+              {openAccount && (
+                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-graphite bg-charcoal shadow-lg overflow-hidden">
+                  <div className="px-4 py-3 border-b border-graphite">
+                    <div className="text-sm text-softwhite">{displayName}</div>
+                    <div className="text-xs text-softwhite/60">{user.email}</div>
+                  </div>
+
+                  <div className="p-2">
                     <Link
                       href="/appointments"
-                      className="block px-4 py-2 text-softwhite/80 hover:bg-slate hover:text-softwhite rounded transition"
+                      className="block px-3 py-2 rounded-lg text-sm text-softwhite/80 hover:bg-graphite/40"
+                      onClick={() => setOpenAccount(false)}
                     >
                       My Appointments
                     </Link>
-                    
                     <Link
-                      href="/booking"
-                      className="block px-4 py-3 text-softwhite/80 hover:text-softwhite hover:bg-slate rounded-xl transition"
+                      href="/dashboard"
+                      className="block px-3 py-2 rounded-lg text-sm text-softwhite/80 hover:bg-graphite/40"
+                      onClick={() => setOpenAccount(false)}
                     >
-                      Book Session
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="block px-3 py-2 rounded-lg text-sm text-softwhite/80 hover:bg-graphite/40"
+                      onClick={() => setOpenAccount(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/settings"
+                      className="block px-3 py-2 rounded-lg text-sm text-softwhite/80 hover:bg-graphite/40"
+                      onClick={() => setOpenAccount(false)}
+                    >
+                      Settings
                     </Link>
 
-                    {user?.isAdmin && (
+                    {admin && (
                       <Link
                         href="/admin/appointments"
-                        className="block px-4 py-3 text-softwhite/80 hover:text-softwhite hover:bg-slate rounded-xl transition"
+                        className="block px-3 py-2 rounded-lg text-sm text-softwhite/80 hover:bg-graphite/40"
+                        onClick={() => setOpenAccount(false)}
                       >
-                        Admin Dashboard
+                        Admin
                       </Link>
                     )}
 
                     <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-3 text-softwhite/80 hover:bg-slate hover:text-softwhite rounded-xl transition"
+                      onClick={logout}
+                      className="w-full text-left px-3 py-2 rounded-lg text-sm text-softwhite/80 hover:bg-graphite/40"
                     >
                       Logout
                     </button>
                   </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-4">
-              <Link href="/auth/login" className="mindspring-button">
-                Sign In
-              </Link>
-              <Link href="/auth/register" className="mindspring-button-outline">
-                Sign Up
-              </Link>
+                </div>
+              )}
             </div>
           )}
         </div>
-      </nav>
+
+        {/* Mobile */}
+        <div className="md:hidden flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="btn-mindspring-outline"
+            onClick={() => setOpenMobile((v) => !v)}
+          >
+            ☰
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile panel */}
+      {openMobile && (
+        <div className="md:hidden border-t border-graphite bg-charcoal">
+          <div className="px-4 py-3 space-y-2">
+            {nav.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block px-3 py-2 rounded-lg text-softwhite/80 hover:bg-graphite/40"
+                onClick={() => setOpenMobile(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            <div className="h-px bg-graphite/60 my-2" />
+
+            {!user ? (
+              <div className="flex gap-2">
+                <Link href="/auth/login" className="flex-1" onClick={() => setOpenMobile(false)}>
+                  <Button variant="outline" className="btn-mindspring-outline w-full">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/auth/register" className="flex-1" onClick={() => setOpenMobile(false)}>
+                  <Button className="btn-mindspring-primary w-full">Sign up</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <div className="px-3 py-2">
+                  <div className="text-sm text-softwhite">{displayName}</div>
+                  <div className="text-xs text-softwhite/60">{user.email}</div>
+                </div>
+
+                <Link href="/appointments" className="block px-3 py-2 rounded-lg text-softwhite/80 hover:bg-graphite/40" onClick={() => setOpenMobile(false)}>
+                  My Appointments
+                </Link>
+                <Link href="/dashboard" className="block px-3 py-2 rounded-lg text-softwhite/80 hover:bg-graphite/40" onClick={() => setOpenMobile(false)}>
+                  Dashboard
+                </Link>
+                <Link href="/profile" className="block px-3 py-2 rounded-lg text-softwhite/80 hover:bg-graphite/40" onClick={() => setOpenMobile(false)}>
+                  Profile
+                </Link>
+                <Link href="/settings" className="block px-3 py-2 rounded-lg text-softwhite/80 hover:bg-graphite/40" onClick={() => setOpenMobile(false)}>
+                  Settings
+                </Link>
+
+                {admin && (
+                  <Link href="/admin/appointments" className="block px-3 py-2 rounded-lg text-softwhite/80 hover:bg-graphite/40" onClick={() => setOpenMobile(false)}>
+                    Admin
+                  </Link>
+                )}
+
+                <button onClick={logout} className="w-full text-left px-3 py-2 rounded-lg text-softwhite/80 hover:bg-graphite/40">
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   )
 }

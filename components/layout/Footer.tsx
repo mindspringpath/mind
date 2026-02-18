@@ -14,13 +14,12 @@ export default function Footer() {
     ],
     company: [
       { name: 'About Us', href: '/about' },
-      { name: 'Our Team', href: '/about' },
+      { name: 'Counsellor & Practice', href: '/about' },
     ],
     support: [
-      { name: 'Contact', href: '/contact' },
       { name: 'FAQ', href: '/faq' },
-      { name: 'Privacy Policy', href: '/legal/privacy-policy' },
       { name: 'Terms of Service', href: '/legal/terms-of-service' },
+      { name: 'Privacy Policy', href: '/legal/privacy-policy' },
       { name: 'Cancellation Policy', href: '/legal/cancellation-policy' },
       { name: 'Disclaimer', href: '/legal/disclaimer' },
       { name: 'Website Use Policy', href: '/legal/website-use' },
@@ -39,11 +38,11 @@ export default function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Company Info */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-1">
               <div className="flex items-center space-x-3 mb-4">
-                <Logo variant="dark" className="h-20 w-auto" />
+                <Logo variant="dark" className="h-16 w-auto" />
               </div>
               <p className="text-softwhite/70 mb-6 max-w-md leading-relaxed">
                 Transform your mental clarity and focus with evidence-based coaching programs 
@@ -65,25 +64,11 @@ export default function Footer() {
                   <span>Australia</span>
                 </div>
               </div>
-
-              {/* Social Links */}
-              <div className="flex space-x-4 mt-6">
-                {socialLinks.map((social) => (
-                  <Link
-                    key={social.label}
-                    href={social.href}
-                    className="text-softwhite/50 hover:text-softwhite transition-colors"
-                    aria-label={social.label}
-                  >
-                    <social.icon className="h-5 w-5" />
-                  </Link>
-                ))}
-              </div>
             </div>
 
             {/* Services Links */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Services</h3>
+              <h3 className="text-lg font-semibold mb-4 text-softwhite">Services</h3>
               <ul className="space-y-2">
                 {footerLinks.services.map((link) => (
                   <li key={link.name}>
@@ -100,7 +85,7 @@ export default function Footer() {
 
             {/* Company Links */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Company</h3>
+              <h3 className="text-lg font-semibold mb-4 text-softwhite">Counsellor & Practice</h3>
               <ul className="space-y-2">
                 {footerLinks.company.map((link) => (
                   <li key={link.name}>
@@ -115,21 +100,21 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Support Links */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Support</h3>
-              <ul className="space-y-2">
+            {/* Support Links - 3 columns */}
+            <div className="lg:col-span-2">
+              <h3 className="text-lg font-semibold mb-4 text-softwhite">Support</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {footerLinks.support.map((link) => (
-                  <li key={link.name}>
+                  <div key={link.name}>
                     <Link
                       href={link.href}
-                      className="text-softwhite/70 hover:text-softwhite transition-colors"
+                      className="text-softwhite/70 hover:text-softwhite transition-colors text-sm"
                     >
                       {link.name}
                     </Link>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -137,7 +122,7 @@ export default function Footer() {
         {/* CTA Section */}
         <div className="border-t border-graphite py-10">
           <div className="text-center">
-            <h3 className="text-2xl font-bold mb-4 tracking-tight">Ready to Transform Your Mental Clarity?</h3>
+            <h3 className="text-2xl font-bold mb-4 tracking-tight text-softwhite">Ready to Transform Your Mental Clarity?</h3>
             <p className="text-softwhite/70 mb-6 max-w-2xl mx-auto leading-relaxed">
               Schedule your free consultation today and discover how evidence-based coaching can help you achieve clarity and focus.
             </p>
@@ -155,7 +140,10 @@ export default function Footer() {
             <p className="text-softwhite/50 text-sm">
               © {currentYear} MindSpring Path: Evidence-Based Coaching for Clarity & Focus. All rights reserved.
             </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6 mt-4 md:mt-0">
+              <Link href="/admin/login" className="text-softwhite/50 hover:text-softwhite text-sm transition-colors">
+                Admin Login
+              </Link>
               <Link href="/legal/privacy-policy" className="text-softwhite/50 hover:text-softwhite text-sm transition-colors">
                 Privacy Policy
               </Link>
