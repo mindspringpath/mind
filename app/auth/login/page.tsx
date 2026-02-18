@@ -36,17 +36,29 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
+    // Add timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      setError('Login is taking longer than expected. Please try again.')
+      setLoading(false)
+    }, 10000) // 10 second timeout
+
     try {
+      console.log('Login page: Attempting login for:', email)
       const result = await signIn(email, password)
+      clearTimeout(timeoutId)
       
       // Check if login was successful
       if (result.user) {
+        console.log('Login page: Login successful, redirecting to dashboard')
         router.replace('/dashboard')
       } else {
         setError('Login failed. Please try again.')
       }
     } catch (err: any) {
+      clearTimeout(timeoutId)
       const msg = err?.message || ''
+
+      console.log('Login page: Error caught:', msg)
 
       if (msg.includes('Invalid login credentials')) {
         setError('Invalid email or password. Please try again.')
@@ -54,12 +66,15 @@ export default function LoginPage() {
         setError('Please verify your email before logging in.')
       } else if (msg.includes('User not found')) {
         setError('No account found with this email.')
-      } else if (msg.includes('can only be called on the client side')) {
-        setError('Login is only available in the browser.')
+      } else if (msg.includes('can only be called on client side')) {
+        setError('Login is only available in browser.')
+      } else if (msg.includes('timeout') || msg.includes('TIMEOUT')) {
+        setError('Login timed out. Please check your connection and try again.')
       } else {
         setError(msg || 'Login failed. Please try again.')
       }
     } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
     }
   }

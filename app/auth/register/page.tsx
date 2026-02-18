@@ -20,17 +20,41 @@ export default function RegisterPage() {
     setSuccess('')
     setLoading(true)
 
+    // Add timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      setError('Registration is taking longer than expected. Please try again.')
+      setLoading(false)
+    }, 15000) // 15 second timeout
+
     try {
+      console.log('Registration page: Attempting to register:', email)
       await signUp(email, password, fullName)
+      clearTimeout(timeoutId)
+      
+      console.log('Registration page: Registration successful')
       setSuccess('Account created! Check your email to verify your account.')
-      setTimeout(() => router.replace('/auth/login'), 1500)
+      
+      // Redirect after delay to show success message
+      setTimeout(() => {
+        router.replace('/auth/login')
+      }, 2000)
     } catch (err: any) {
+      clearTimeout(timeoutId)
+      console.log('Registration page: Error caught:', err?.message)
+      
       if (err.message.includes('User already registered')) {
         setError('This email is already registered. Please sign in instead.')
+      } else if (err.message.includes('timeout') || err.message.includes('TIMEOUT')) {
+        setError('Registration timed out. Please check your connection and try again.')
+      } else if (err.message.includes('Password')) {
+        setError('Password is too weak. Please use a stronger password.')
+      } else if (err.message.includes('Email')) {
+        setError('Invalid email address. Please check and try again.')
       } else {
-        setError(err.message || 'Registration failed.')
+        setError(err.message || 'Registration failed. Please try again.')
       }
     } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
     }
   }

@@ -162,14 +162,26 @@ export async function createContactMessage(message: {
   message: string
   status?: 'new' | 'read' | 'archived'
 }) {
-  const { data, error } = await supabase
-    .from('contact_messages')
-    .insert(message)
-    .select()
-    .single()
+  try {
+    console.log('Creating contact message:', { email: message.email, timestamp: new Date().toISOString() })
+    
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .insert(message)
+      .select()
+      .single()
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.error('Contact message creation error:', error)
+      throw error
+    }
+
+    console.log('Contact message created successfully:', data?.id)
+    return data
+  } catch (error: any) {
+    console.error('Contact message creation exception:', error)
+    throw error
+  }
 }
 
 export async function getContactMessages() {
@@ -202,23 +214,35 @@ export async function signUp(email: string, password: string, fullName: string) 
     throw new Error('signUp can only be called on the client side')
   }
 
+  console.log('Registration attempt:', { email, fullName, timestamp: new Date().toISOString() })
+
   const redirectUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/auth/callback`
     : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/auth/callback`
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+        emailRedirectTo: redirectUrl
       },
-      emailRedirectTo: redirectUrl
-    },
-  })
+    })
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.error('Registration error:', error)
+      throw error
+    }
+
+    console.log('Registration success:', { userId: data.user?.id, email })
+    return data
+  } catch (error: any) {
+    console.error('Registration exception:', error)
+    throw error
+  }
 }
 
 export async function signIn(email: string, password: string) {
@@ -227,13 +251,25 @@ export async function signIn(email: string, password: string) {
     throw new Error('signIn can only be called on the client side')
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+  console.log('Login attempt:', { email, timestamp: new Date().toISOString() })
+  
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.error('Login error:', error)
+      throw error
+    }
+
+    console.log('Login success:', { userId: data.user?.id })
+    return data
+  } catch (error: any) {
+    console.error('Login exception:', error)
+    throw error
+  }
 }
 
 export async function signOut() {
@@ -356,9 +392,78 @@ export async function getUserProgramEnrollments(userId: string) {
 // EMAIL & SMS HELPERS
 // -----------------------------
 export async function sendEmailConfirmation(appointmentId: string) {
-  console.log('Email confirmation sent for appointment:', appointmentId)
-  // TODO: Implement actual email sending
-  return true
+  try {
+    // Get appointment details
+    const { data: appointment, error: appointmentError } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('id', appointmentId)
+      .single()
+
+    if (appointmentError || !appointment) {
+      console.error('Failed to fetch appointment for confirmation:', appointmentError)
+      return false
+    }
+
+    // Get user details
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', appointment.user_id)
+      .single()
+
+    if (userError || !user) {
+      console.error('Failed to fetch user for confirmation:', userError)
+      return false
+    }
+
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333; margin-bottom: 20px;">Appointment Confirmation</h2>
+        <p style="color: #666; line-height: 1.6;">
+          Dear ${user.full_name || 'Valued Client'},
+        </p>
+        <p style="color: #666; line-height: 1.6;">
+          Your appointment has been confirmed with the following details:
+        </p>
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p><strong>Date:</strong> ${appointment.date}</p>
+          <p><strong>Time:</strong> ${appointment.time}</p>
+          <p><strong>Session Type:</strong> ${appointment.session_type}</p>
+        </div>
+        <p style="color: #666; line-height: 1.6;">
+          All sessions are conducted online. You will receive joining instructions via email 24 hours before your session.
+        </p>
+        <p style="color: #666; line-height: 1.6;">
+          If you need to reschedule or cancel, please visit your dashboard or contact us.
+        </p>
+      </div>
+    `
+
+    // Send via API route instead of direct nodemailer
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: user.email,
+        subject: 'Appointment Confirmation - MindSpring Path',
+        html: emailHtml
+      })
+    })
+
+    if (response.ok) {
+      console.log('Email confirmation sent successfully:', appointmentId)
+      return true
+    } else {
+      console.error('Failed to send email confirmation:', await response.text())
+      return false
+    }
+  } catch (error: any) {
+    console.error('Email confirmation error:', error)
+    return false
+  }
 }
 
 export async function sendEmailReminder(appointmentId: string) {

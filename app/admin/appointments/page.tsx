@@ -6,6 +6,7 @@ import { supabase, getCurrentUser, isAdmin } from '@/lib/auth-helpers'
 import { Button } from '@/components/ui/button'
 import { LockClosedIcon } from '@heroicons/react/24/solid'
 import RescheduleModal from '@/components/booking/RescheduleModal'
+import AvailabilityManager from '@/components/admin/AvailabilityManager'
 
 function SystemPanel() {
   const [dbStatus, setDbStatus] = useState<'unknown' | 'online' | 'offline'>('unknown')
@@ -84,6 +85,7 @@ export default function AdminAppointmentsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [reschedule, setReschedule] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState<'appointments' | 'availability'>('appointments')
 
   useEffect(() => {
     const loadData = async () => {

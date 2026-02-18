@@ -4,7 +4,25 @@ import { sendEmail } from '@/lib/email'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { kind, appointment, data } = body
+    const { kind, appointment, data, to, subject, html } = body
+
+    console.log('Email API: Request received:', { kind, to, subject })
+
+    // Handle direct email sending (from auth-helpers)
+    if (to && subject && html) {
+      try {
+        await sendEmail({
+          to,
+          subject,
+          html
+        })
+        console.log('Email API: Direct email sent successfully')
+        return NextResponse.json({ ok: true })
+      } catch (emailError: any) {
+        console.error('Email API: Direct email failed:', emailError)
+        return NextResponse.json({ ok: false, error: emailError?.message || 'Email sending failed' }, { status: 500 })
+      }
+    }
 
     if (!kind) {
       return NextResponse.json({ ok: false, error: 'Missing kind' }, { status: 400 })

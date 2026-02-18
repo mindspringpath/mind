@@ -23,7 +23,16 @@ export default function ContactPage() {
     setSuccess('')
     setSubmitting(true)
 
+    // Add timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      setError('Message is taking longer than expected to send. Please try again.')
+      setSubmitting(false)
+    }, 15000) // 15 second timeout
+
     try {
+      console.log('Contact form: Submitting message from:', formData.email)
+      
+      // Save to database first
       await createContactMessage({
         full_name: formData.fullName,
         email: formData.email,
@@ -34,7 +43,7 @@ export default function ContactPage() {
 
       // Send email notification
       try {
-        await fetch('/api/send-email', {
+        const emailResponse = await fetch('/api/send-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -49,21 +58,46 @@ export default function ContactPage() {
             }
           })
         })
-      } catch (emailError) {
-        console.error('Failed to send email notification:', emailError)
-        // Don't fail the form submission if email fails
-      }
 
-      setSuccess('Thank you for your message! We will get back to you soon.')
-      setFormData({
-        fullName: '',
-        email: '',
-        phone: '',
-        message: ''
-      })
+        if (!emailResponse.ok) {
+          console.error('Contact form: Email notification failed:', await emailResponse.text())
+          setError('Message saved but email notification failed. We will still respond to your message.')
+        } else {
+          console.log('Contact form: Message sent successfully')
+          setSuccess('Thank you for your message! We will get back to you soon.')
+          setFormData({
+            fullName: '',
+            email: '',
+            phone: '',
+            message: ''
+          })
+        }
+      } catch (emailError) {
+        console.error('Contact form: Email notification error:', emailError)
+        // Don't fail the form submission if email fails
+        setSuccess('Thank you for your message! We will get back to you soon.')
+        setFormData({
+          fullName: '',
+          email: '',
+          phone: '',
+          message: ''
+        })
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to send your message. Please try again.')
+      clearTimeout(timeoutId)
+      console.error('Contact form: Submission error:', err?.message)
+      
+      if (err.message.includes('timeout') || err.message.includes('TIMEOUT')) {
+        setError('Submission timed out. Please check your connection and try again.')
+      } else if (err.message.includes('Network') || err.message.includes('fetch')) {
+        setError('Network error. Please check your connection and try again.')
+      } else if (err.message.includes('validation')) {
+        setError('Please check all fields and try again.')
+      } else {
+        setError(err.message || 'Failed to send your message. Please try again.')
+      }
     } finally {
+      clearTimeout(timeoutId)
       setSubmitting(false)
     }
   }
