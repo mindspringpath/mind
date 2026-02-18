@@ -8,8 +8,11 @@ export default function BookingPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-softwhite mb-4 tracking-tight">
             Book Your Session
           </h1>
-          <p className="text-lg md:text-xl text-softwhite/70">
+          <p className="text-lg md:text-xl text-softwhite/70 mb-2">
             Schedule your evidence-based coaching session
+          </p>
+          <p className="text-sm text-softwhite/50">
+            All sessions are conducted online
           </p>
         </div>
         <BookingForm />

@@ -18,14 +18,22 @@ export async function isAdmin(): Promise<boolean> {
     if (!user) return false
 
     // Check if user has admin role
-    const { data: roleData } = await supabase
+    const { data: roleData, error } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single()
 
-    return roleData?.role === 'admin'
+    if (error) {
+      console.error('Admin check error:', error)
+      return false
+    }
+
+    const isAdmin = roleData?.role === 'admin'
+    console.log('Admin check result:', { userId: user.id, isAdmin })
+    return isAdmin
   } catch (error) {
+    console.error('Admin check exception:', error)
     return false
   }
 }

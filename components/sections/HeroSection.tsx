@@ -34,7 +34,7 @@ export default function HeroSection() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-slide-up animation-delay-400">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-slide-up animation-delay-400">
             <Link href="/booking">
               <Button className="btn-mindspring-primary text-lg px-8 py-4">
                 Book a Session
@@ -53,6 +53,11 @@ export default function HeroSection() {
               </Button>
             </Link>
           </div>
+
+          {/* Online Sessions Note */}
+          <p className="text-sm text-softwhite/50 animate-fade-in-up animation-delay-600">
+            All sessions are conducted online
+          </p>
 
           {/* Trust Indicators */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto animate-fade-in animation-delay-600">

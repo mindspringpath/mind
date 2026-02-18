@@ -18,19 +18,16 @@ export default function Footer() {
     ],
     support: [
       { name: 'FAQ', href: '/faq' },
-      { name: 'Terms of Service', href: '/legal/terms-of-service' },
-      { name: 'Privacy Policy', href: '/legal/privacy-policy' },
       { name: 'Cancellation Policy', href: '/legal/cancellation-policy' },
-      { name: 'Disclaimer', href: '/legal/disclaimer' },
       { name: 'Website Use Policy', href: '/legal/website-use' },
+      { name: 'Disclaimer', href: '/legal/disclaimer' },
     ],
   }
 
-  // Organize support links in 3 rows of 2 links each
+  // Organize support links in 2 rows of 2 links each
   const supportLinksGrid = [
-    [footerLinks.support[0], footerLinks.support[1]], // FAQ | Terms of Service
-    [footerLinks.support[2], footerLinks.support[3]], // Privacy Policy | Cancellation Policy
-    [footerLinks.support[4], footerLinks.support[5]], // Disclaimer | Website Use Policy
+    [footerLinks.support[0], footerLinks.support[1]], // FAQ | Cancellation Policy
+    [footerLinks.support[2], footerLinks.support[3]], // Website Use Policy | Disclaimer
   ]
 
   const socialLinks = [

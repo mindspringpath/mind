@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, Clock, User, Target, Video, Phone, Mail, ChevronRight, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,13 +31,14 @@ export default function ClientDashboard() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const router = useRouter()
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const currentUser = await getCurrentUser()
         if (!currentUser) {
-          window.location.href = '/auth/login'
+          router.replace('/auth/login')
           return
         }
 
@@ -44,8 +46,14 @@ export default function ClientDashboard() {
 
         // Fetch appointments and enrollments
         const [appointmentsData, enrollmentsData] = await Promise.all([
-          getUserAppointments(currentUser.id),
-          getUserProgramEnrollments(currentUser.id)
+          getUserAppointments(currentUser.id).catch(err => {
+            console.error('Error fetching appointments:', err)
+            return []
+          }),
+          getUserProgramEnrollments(currentUser.id).catch(err => {
+            console.error('Error fetching enrollments:', err)
+            return []
+          })
         ])
 
         setAppointments(appointmentsData)

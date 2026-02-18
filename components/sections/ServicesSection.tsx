@@ -54,8 +54,11 @@ export default function ServicesSection() {
           <h2 className="text-3xl md:text-4xl font-bold text-softwhite mb-6 tracking-tight">
             Our <span className="text-white">Services</span>
           </h2>
-          <p className="text-lg md:text-xl text-softwhite/70 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-softwhite/70 max-w-4xl mx-auto leading-relaxed mb-4">
             MindSpring Path: Evidence-Based Coaching for Clarity & Focus
+          </p>
+          <p className="text-sm text-softwhite/50">
+            All sessions are conducted online
           </p>
         </div>
 
