@@ -2,16 +2,18 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase, getCurrentUser, isAdmin } from '@/lib/auth-helpers'
 import { Button } from '@/components/ui/button'
+import Logo from '@/components/Logo'
 
 type NavItem = { href: string; label: string }
 
 export default function Header() {
   const pathname = usePathname()
   const router = useRouter()
+  const accountDropdownRef = useRef<HTMLDivElement>(null)
 
   const [user, setUser] = useState<any>(null)
   const [admin, setAdmin] = useState(false)
@@ -27,7 +29,6 @@ export default function Header() {
     ],
     []
   )
-
   useEffect(() => {
     const load = async () => {
       const u = await getCurrentUser()
@@ -38,6 +39,18 @@ export default function Header() {
 
     const { data } = supabase.auth.onAuthStateChange(() => load())
     return () => data.subscription.unsubscribe()
+  }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
+        setOpenAccount(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const displayName =
@@ -57,16 +70,7 @@ export default function Header() {
       <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-3">
         {/* Brand */}
         <Link href="/home" className="flex items-center gap-2">
-          <div className="relative h-9 w-32 sm:h-10 sm:w-36">
-            <Image
-              src="/logo.png"
-              alt="MindSpring Path"
-              fill
-              priority
-              className="object-contain"
-              sizes="(max-width: 640px) 128px, 144px"
-            />
-          </div>
+          <Logo variant="dark" className="h-10 w-auto" />
         </Link>
 
         {/* Desktop nav */}
@@ -102,7 +106,7 @@ export default function Header() {
               </Link>
             </>
           ) : (
-            <div className="relative">
+            <div className="relative" ref={accountDropdownRef}>
               <Button
                 className="btn-mindspring-outline"
                 variant="outline"
@@ -112,7 +116,7 @@ export default function Header() {
               </Button>
 
               {openAccount && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-graphite bg-charcoal shadow-lg overflow-hidden">
+                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-graphite bg-charcoal shadow-lg overflow-hidden z-50">
                   <div className="px-4 py-3 border-b border-graphite">
                     <div className="text-sm text-softwhite">{displayName}</div>
                     <div className="text-xs text-softwhite/60">{user.email}</div>

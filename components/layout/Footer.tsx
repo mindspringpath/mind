@@ -26,6 +26,13 @@ export default function Footer() {
     ],
   }
 
+  // Organize support links in 3 rows of 2 links each
+  const supportLinksGrid = [
+    [footerLinks.support[0], footerLinks.support[1]], // FAQ | Terms of Service
+    [footerLinks.support[2], footerLinks.support[3]], // Privacy Policy | Cancellation Policy
+    [footerLinks.support[4], footerLinks.support[5]], // Disclaimer | Website Use Policy
+  ]
+
   const socialLinks = [
     { icon: Facebook, href: '#', label: 'Facebook' },
     { icon: Twitter, href: '#', label: 'Twitter' },
@@ -100,18 +107,21 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Support Links - 3 columns */}
-            <div className="lg:col-span-2">
+            {/* Support Links - 4th column */}
+            <div>
               <h3 className="text-lg font-semibold mb-4 text-softwhite">Support</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {footerLinks.support.map((link) => (
-                  <div key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-softwhite/70 hover:text-softwhite transition-colors text-sm"
-                    >
-                      {link.name}
-                    </Link>
+              <div className="space-y-2">
+                {supportLinksGrid.map((row, rowIndex) => (
+                  <div key={rowIndex} className="flex gap-4 text-sm">
+                    {row.map((link) => (
+                      <Link
+                        key={link.name}
+                        href={link.href}
+                        className="text-softwhite/70 hover:text-softwhite transition-colors flex-1"
+                      >
+                        {link.name}
+                      </Link>
+                    ))}
                   </div>
                 ))}
               </div>

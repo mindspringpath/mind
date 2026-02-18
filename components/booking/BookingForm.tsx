@@ -219,7 +219,7 @@ export default function BookingForm() {
           value={formData.fullName}
           onChange={handleChange}
           required
-          className="input-mindspring"
+          className="mindspring-input"
         />
       </div>
 
@@ -232,7 +232,7 @@ export default function BookingForm() {
           value={formData.email}
           onChange={handleChange}
           required
-          className="input-mindspring"
+          className="mindspring-input"
         />
       </div>
 
@@ -244,7 +244,7 @@ export default function BookingForm() {
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          className="input-mindspring"
+          className="mindspring-input"
         />
       </div>
 
@@ -255,7 +255,7 @@ export default function BookingForm() {
           name="sessionType"
           value={formData.sessionType}
           onChange={handleChange}
-          className="input-mindspring"
+          className="mindspring-input"
         >
           <option>Initial Consultation</option>
           <option>Follow-Up Session</option>
@@ -272,7 +272,7 @@ export default function BookingForm() {
           value={formData.date}
           onChange={handleChange}
           required
-          className="input-mindspring"
+          className="mindspring-input"
         />
       </div>
 
@@ -284,7 +284,7 @@ export default function BookingForm() {
           value={formData.time}
           onChange={handleChange}
           required
-          className="input-mindspring"
+          className="mindspring-input"
         >
           {timeSlots.map(slot => (
             <option key={slot.id} value={slot.time} disabled={!slot.is_available}>

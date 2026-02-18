@@ -103,6 +103,7 @@ export default function ContactPage() {
               </label>
               <input
                 type="text"
+                name="fullName"
                 placeholder="Your full name"
                 className="mindspring-input w-full"
                 value={formData.fullName}
@@ -117,6 +118,7 @@ export default function ContactPage() {
               </label>
               <input
                 type="email"
+                name="email"
                 placeholder="your@email.com"
                 className="mindspring-input w-full"
                 value={formData.email}
@@ -131,6 +133,7 @@ export default function ContactPage() {
               </label>
               <input
                 type="tel"
+                name="phone"
                 placeholder="+61 2 3456 7890"
                 className="mindspring-input w-full"
                 value={formData.phone}
@@ -143,6 +146,7 @@ export default function ContactPage() {
                 Message
               </label>
               <textarea
+                name="message"
                 placeholder="Tell us about your coaching needs..."
                 className="mindspring-input w-full h-32"
                 value={formData.message}
