@@ -263,9 +263,12 @@ export async function signUp(email: string, password: string, fullName: string) 
 
   console.log('Registration attempt:', { email, fullName, timestamp: new Date().toISOString() })
 
+  // Fix redirect URL - ensure it's properly constructed
   const redirectUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/auth/callback`
-    : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/auth/callback`
+    : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
+
+  console.log('Registration: Using redirect URL:', redirectUrl)
 
   try {
     const { data, error } = await supabase.auth.signUp({
@@ -281,10 +284,38 @@ export async function signUp(email: string, password: string, fullName: string) 
 
     if (error) {
       console.error('Registration error:', error)
+      
+      // Handle specific verification errors
+      if (error.message?.includes('email_confirmation')) {
+        throw new Error('Email verification failed. Please check your email and try the verification link.')
+      }
+      
+      if (error.message?.includes('User already registered')) {
+        throw new Error('This email is already registered. Please sign in instead.')
+      }
+      
+      if (error.message?.includes('Password')) {
+        throw new Error('Password is too weak. Please use a stronger password.')
+      }
+      
       throw error
     }
 
-    console.log('Registration success:', { userId: data.user?.id, email })
+    console.log('Registration success:', { 
+      userId: data.user?.id, 
+      email: data.user?.email,
+      emailConfirmed: data.user?.email_confirmed_at,
+      hasSession: !!data.session
+    })
+    
+    // Provide better feedback based on registration result
+    if (data.user && !data.user.email_confirmed_at) {
+      console.log('Registration: User created but email not confirmed')
+      // This is expected - user needs to verify email
+    } else if (data.session) {
+      console.log('Registration: User already verified, session created')
+    }
+    
     return data
   } catch (error: any) {
     console.error('Registration exception:', error)
@@ -295,27 +326,30 @@ export async function signUp(email: string, password: string, fullName: string) 
       stack: error.stack
     })
     
-    // RE-ENABLED: More specific AbortError detection
-    // Only catch actual AbortError, not general error messages
-    if (error.name === 'AbortError') {
-      console.error('Registration request was aborted:', error)
-      throw new Error('Registration request was interrupted. Please try again.')
-    }
+    // DISABLED: AbortError detection was causing false positives
+    // Only catch actual AbortError if it's truly a user cancellation
+    // if (error.name === 'AbortError') {
+    //   console.error('Registration request was aborted:', error)
+    //   throw new Error('Registration request was interrupted. Please try again.')
+    // }
     
+    // DISABLED: These message checks were too broad and catching legitimate errors
     // Only catch specific Supabase abort message
-    if (error.message?.includes('signal is aborted without reason')) {
-      console.error('Registration aborted without reason:', error)
-      throw new Error('Registration was cancelled. Please try again.')
-    }
+    // if (error.message?.includes('signal is aborted without reason')) {
+    //   console.error('Registration aborted without reason:', error)
+    //   throw new Error('Registration was cancelled. Please try again.')
+    // }
     
+    // DISABLED: Generic abort message detection was too broad
     // Don't catch general "signal is aborted" as it might be part of other error messages
     // Only catch if it's specifically about request being aborted
-    if (error.message?.includes('The request was aborted') || 
-        error.message?.includes('Request was aborted')) {
-      console.error('Registration request was aborted:', error)
-      throw new Error('Registration request was interrupted. Please try again.')
-    }
+    // if (error.message?.includes('The request was aborted') || 
+    //     error.message?.includes('Request was aborted')) {
+    //   console.error('Registration request was aborted:', error)
+    //   throw new Error('Registration request was interrupted. Please try again.')
+    // }
     
+    // Let original error through for proper handling
     throw error
   }
 }
@@ -350,27 +384,30 @@ export async function signIn(email: string, password: string) {
       stack: error.stack
     })
     
-    // RE-ENABLED: More specific AbortError detection
-    // Only catch actual AbortError, not general error messages
-    if (error.name === 'AbortError') {
-      console.error('Login request was aborted:', error)
-      throw new Error('Login request was interrupted. Please try again.')
-    }
+    // DISABLED: AbortError detection was causing false positives
+    // Only catch actual AbortError if it's truly a user cancellation
+    // if (error.name === 'AbortError') {
+    //   console.error('Login request was aborted:', error)
+    //   throw new Error('Login request was interrupted. Please try again.')
+    // }
     
+    // DISABLED: These message checks were too broad and catching legitimate errors
     // Only catch specific Supabase abort message
-    if (error.message?.includes('signal is aborted without reason')) {
-      console.error('Login aborted without reason:', error)
-      throw new Error('Login was cancelled. Please try again.')
-    }
+    // if (error.message?.includes('signal is aborted without reason')) {
+    //   console.error('Login aborted without reason:', error)
+    //   throw new Error('Login was cancelled. Please try again.')
+    // }
     
+    // DISABLED: Generic abort message detection was too broad
     // Don't catch general "signal is aborted" as it might be part of other error messages
     // Only catch if it's specifically about request being aborted
-    if (error.message?.includes('The request was aborted') || 
-        error.message?.includes('Request was aborted')) {
-      console.error('Login request was aborted:', error)
-      throw new Error('Login request was interrupted. Please try again.')
-    }
+    // if (error.message?.includes('The request was aborted') || 
+    //     error.message?.includes('Request was aborted')) {
+    //   console.error('Login request was aborted:', error)
+    //   throw new Error('Login request was interrupted. Please try again.')
+    // }
     
+    // Let the original error through for proper handling
     throw error
   }
 }
@@ -402,27 +439,30 @@ export async function signOut() {
       stack: error.stack
     })
     
-    // RE-ENABLED: More specific AbortError detection
-    // Only catch actual AbortError, not general error messages
-    if (error.name === 'AbortError') {
-      console.error('SignOut request was aborted:', error)
-      throw new Error('SignOut request was interrupted. Please try again.')
-    }
+    // DISABLED: AbortError detection was causing false positives
+    // Only catch actual AbortError if it's truly a user cancellation
+    // if (error.name === 'AbortError') {
+    //   console.error('SignOut request was aborted:', error)
+    //   throw new Error('SignOut request was interrupted. Please try again.')
+    // }
     
+    // DISABLED: These message checks were too broad and catching legitimate errors
     // Only catch specific Supabase abort message
-    if (error.message?.includes('signal is aborted without reason')) {
-      console.error('SignOut aborted without reason:', error)
-      throw new Error('SignOut was cancelled. Please try again.')
-    }
+    // if (error.message?.includes('signal is aborted without reason')) {
+    //   console.error('SignOut aborted without reason:', error)
+    //   throw new Error('SignOut was cancelled. Please try again.')
+    // }
     
+    // DISABLED: Generic abort message detection was too broad
     // Don't catch general "signal is aborted" as it might be part of other error messages
     // Only catch if it's specifically about request being aborted
-    if (error.message?.includes('The request was aborted') || 
-        error.message?.includes('Request was aborted')) {
-      console.error('SignOut request was aborted:', error)
-      throw new Error('SignOut request was interrupted. Please try again.')
-    }
+    // if (error.message?.includes('The request was aborted') || 
+    //     error.message?.includes('Request was aborted')) {
+    //   console.error('SignOut request was aborted:', error)
+    //   throw new Error('SignOut request was interrupted. Please try again.')
+    // }
     
+    // Let original error through for proper handling
     throw error
   }
 }

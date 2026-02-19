@@ -27,7 +27,17 @@ export default function AuthCallbackPage() {
 
         if (exchangeError) {
           console.error('Auth callback: Exchange error:', exchangeError)
-          setError('Verification link is invalid or expired.')
+          
+          // Handle specific verification errors
+          if (exchangeError.message?.includes('Invalid token')) {
+            setError('Verification link is invalid. Please request a new verification email.')
+          } else if (exchangeError.message?.includes('expired')) {
+            setError('Verification link has expired. Please request a new verification email.')
+          } else if (exchangeError.message?.includes('already been used')) {
+            setError('Verification link has already been used. Please try logging in.')
+          } else {
+            setError('Verification failed. Please try again or request a new verification email.')
+          }
           return
         }
 
@@ -54,14 +64,21 @@ export default function AuthCallbackPage() {
             if (next) {
               router.replace(next)
             } else if (isAdmin) {
-              router.replace('/admin')
+              router.replace('/admin/appointments')
             } else {
               router.replace('/dashboard')
             }
           } catch (roleError) {
             console.error('Auth callback: Role check failed:', roleError)
-            // Fallback to dashboard if role check fails
-            router.replace('/dashboard')
+            
+            // If role check fails, still redirect based on user email
+            if (user?.email === 'mindspringpath@gmail.com') {
+              console.log('Auth callback: Known admin user, redirecting to appointments')
+              router.replace('/admin/appointments')
+            } else {
+              console.log('Auth callback: Role check failed, redirecting to dashboard')
+              router.replace('/dashboard')
+            }
           }
         } else {
           console.error('Auth callback: No user found after exchange')
