@@ -40,7 +40,15 @@ export default function ForgotPasswordPage() {
         setError('No account found with this email address.')
       } else if (err.message.includes('timeout') || err.message.includes('TIMEOUT')) {
         setError('Request timed out. Please check your connection and try again.')
-      } else if (err.message.includes('rate limit') || err.message.includes('too many')) {
+      } else if (err.message.includes('signal is aborted') || err.message.includes('was cancelled')) {
+        setError('Password reset was cancelled. Please try again.')
+      } else if (err.message.includes('interrupted')) {
+        setError('Password reset was interrupted. Please try again.')
+      } else if (err.message.includes('timeout') || err.message.includes('TIMEOUT')) {
+        setError('Password reset timed out. Please check your connection and try again.')
+      } else if (err.message.includes('User not found')) {
+        setError('No account found with this email address.')
+      } else if (err.message.includes('rate limit')) {
         setError('Too many requests. Please wait a few minutes before trying again.')
       } else {
         setError(err.message || 'Failed to send reset email. Please try again.')

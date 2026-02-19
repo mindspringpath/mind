@@ -50,6 +50,10 @@ export default function RegisterPage() {
         setError('Password is too weak. Please use a stronger password.')
       } else if (err.message.includes('Email')) {
         setError('Invalid email address. Please check and try again.')
+      } else if (err.message.includes('signal is aborted') || err.message.includes('was cancelled')) {
+        setError('Registration was cancelled. Please try again.')
+      } else if (err.message.includes('interrupted')) {
+        setError('Registration was interrupted. Please try again.')
       } else {
         setError(err.message || 'Registration failed. Please try again.')
       }

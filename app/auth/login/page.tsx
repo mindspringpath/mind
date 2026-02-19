@@ -70,6 +70,10 @@ export default function LoginPage() {
         setError('Login is only available in browser.')
       } else if (msg.includes('timeout') || msg.includes('TIMEOUT')) {
         setError('Login timed out. Please check your connection and try again.')
+      } else if (msg.includes('signal is aborted') || msg.includes('was cancelled')) {
+        setError('Login was cancelled. Please try again.')
+      } else if (msg.includes('interrupted')) {
+        setError('Login was interrupted. Please try again.')
       } else {
         setError(msg || 'Login failed. Please try again.')
       }

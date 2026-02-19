@@ -258,6 +258,18 @@ export async function signUp(email: string, password: string, fullName: string) 
     return data
   } catch (error: any) {
     console.error('Registration exception:', error)
+    
+    // Handle specific error cases
+    if (error.name === 'AbortError' || error.message?.includes('signal is aborted')) {
+      console.error('Registration request was aborted:', error)
+      throw new Error('Registration request was interrupted. Please try again.')
+    }
+    
+    if (error.message?.includes('signal is aborted without reason')) {
+      console.error('Registration aborted without reason:', error)
+      throw new Error('Registration was cancelled. Please try again.')
+    }
+    
     throw error
   }
 }
@@ -285,6 +297,18 @@ export async function signIn(email: string, password: string) {
     return data
   } catch (error: any) {
     console.error('Login exception:', error)
+    
+    // Handle specific error cases
+    if (error.name === 'AbortError' || error.message?.includes('signal is aborted')) {
+      console.error('Login request was aborted:', error)
+      throw new Error('Login request was interrupted. Please try again.')
+    }
+    
+    if (error.message?.includes('signal is aborted without reason')) {
+      console.error('Login aborted without reason:', error)
+      throw new Error('Login was cancelled. Please try again.')
+    }
+    
     throw error
   }
 }
@@ -308,6 +332,18 @@ export async function signOut() {
     return { success: true }
   } catch (error: any) {
     console.error('Auth helpers: SignOut exception:', error)
+    
+    // Handle specific error cases
+    if (error.name === 'AbortError' || error.message?.includes('signal is aborted')) {
+      console.error('SignOut request was aborted:', error)
+      throw new Error('SignOut request was interrupted. Please try again.')
+    }
+    
+    if (error.message?.includes('signal is aborted without reason')) {
+      console.error('SignOut aborted without reason:', error)
+      throw new Error('SignOut was cancelled. Please try again.')
+    }
+    
     throw error
   }
 }
@@ -349,6 +385,18 @@ export async function resetPassword(email: string) {
     return data
   } catch (error: any) {
     console.error('Password reset exception:', error)
+    
+    // Handle specific error cases
+    if (error.name === 'AbortError' || error.message?.includes('signal is aborted')) {
+      console.error('Password reset request was aborted:', error)
+      throw new Error('Password reset request was interrupted. Please try again.')
+    }
+    
+    if (error.message?.includes('signal is aborted without reason')) {
+      console.error('Password reset aborted without reason:', error)
+      throw new Error('Password reset was cancelled. Please try again.')
+    }
+    
     throw error
   }
 }
@@ -359,12 +407,34 @@ export async function updatePassword(newPassword: string) {
     throw new Error('updatePassword can only be called on the client side')
   }
 
-  const { data, error } = await supabase.auth.updateUser({
-    password: newPassword
-  })
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword
+    })
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.error('Password update error:', error)
+      throw error
+    }
+
+    console.log('Password update successful')
+    return data
+  } catch (error: any) {
+    console.error('Password update exception:', error)
+    
+    // Handle specific error cases
+    if (error.name === 'AbortError' || error.message?.includes('signal is aborted')) {
+      console.error('Password update request was aborted:', error)
+      throw new Error('Password update request was interrupted. Please try again.')
+    }
+    
+    if (error.message?.includes('signal is aborted without reason')) {
+      console.error('Password update aborted without reason:', error)
+      throw new Error('Password update was cancelled. Please try again.')
+    }
+    
+    throw error
+  }
 }
 
 // -----------------------------
