@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { supabase, getCurrentUser, isAdmin } from '@/lib/auth-helpers'
 import { Button } from '@/components/ui/button'
 import { LockClosedIcon } from '@heroicons/react/24/solid'
@@ -80,6 +81,8 @@ function SystemPanel() {
 }
 
 export default function AdminAppointmentsPage() {
+  const router = useRouter()
+
   const [user, setUser] = useState<any>(null)
   const [appointments, setAppointments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -87,64 +90,71 @@ export default function AdminAppointmentsPage() {
   const [reschedule, setReschedule] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<'appointments' | 'availability'>('appointments')
 
-useEffect(() => {
-  let mounted = true
+  useEffect(() => {
+    let mounted = true
 
-  const loadData = async () => {
-    try {
-      if (!mounted) return
-      setLoading(true)
+    const loadData = async () => {
+      try {
+        if (!mounted) return
+        setLoading(true)
 
-      const currentUser = await getCurrentUser()
-      if (!mounted) return
+        const currentUser = await getCurrentUser()
+        if (!mounted) return
 
-      if (!currentUser) {
-        setUser(null)
+        // Not logged in → go to admin login
+        if (!currentUser) {
+          setUser(null)
+          setAppointments([])
+          setLoading(false)
+          router.replace('/admin/login')
+          return
+        }
+
+        // Admin check using userId (no nested getCurrentUser calls)
+        const admin = await isAdmin(currentUser.id)
+        if (!mounted) return
+
+        if (!admin) {
+          setUser(null)
+          setAppointments([])
+          setLoading(false)
+          router.replace('/admin/login')
+          return
+        }
+
+        setUser(currentUser)
+
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('*')
+          .order('date', { ascending: true })
+          .order('time', { ascending: true })
+
+        if (!mounted) return
+
+        if (!error && data) setAppointments(data)
         setLoading(false)
-        return
-      }
-
-      const admin = await isAdmin() // ✅ no args
-      if (!mounted) return
-
-      if (!admin) {
+      } catch (err) {
+        console.error('Admin loadData error:', err)
+        if (!mounted) return
         setUser(null)
+        setAppointments([])
         setLoading(false)
-        return
+        router.replace('/admin/login')
       }
-
-      setUser(currentUser)
-
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .order('date', { ascending: true })
-        .order('time', { ascending: true })
-
-      if (!mounted) return
-
-      if (!error && data) setAppointments(data)
-      setLoading(false)
-    } catch (err) {
-      console.error('Admin loadData error:', err)
-      if (!mounted) return
-      setUser(null)
-      setLoading(false)
     }
-  }
 
-  loadData()
-
-  const { data: listener } = supabase.auth.onAuthStateChange(() => {
     loadData()
-  })
 
-  return () => {
-    mounted = false
-    listener?.subscription?.unsubscribe()
-  }
-}, [])
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      loadData()
+    })
 
+    return () => {
+      mounted = false
+      listener?.subscription?.unsubscribe()
+    }
+  }, [router])
 
   if (loading) {
     return (
@@ -154,22 +164,21 @@ useEffect(() => {
     )
   }
 
+  // Safety fallback (should rarely show because we redirect)
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-charcoal text-center px-4">
         <h1 className="text-3xl font-bold text-softwhite mb-4">Admin Access Required</h1>
-        <p className="text-softwhite/70 mb-6">You do not have permission to view this page.</p>
-        <Link href="/login">
-          <Button className="btn-mindspring-primary px-6 py-3">Login</Button>
+        <p className="text-softwhite/70 mb-6">Please log in with an admin account.</p>
+        <Link href="/admin/login">
+          <Button className="btn-mindspring-primary px-6 py-3">Admin Login</Button>
         </Link>
       </div>
     )
   }
 
   const filteredAppointments =
-    filter === 'all'
-      ? appointments
-      : appointments.filter((a) => a.status === filter)
+    filter === 'all' ? appointments : appointments.filter((a) => a.status === filter)
 
   return (
     <div className="min-h-screen bg-charcoal px-4 py-16">
@@ -191,10 +200,7 @@ useEffect(() => {
 
         <div className="space-y-6">
           {filteredAppointments.map((appt) => (
-            <div
-              key={appt.id}
-              className="bg-slate/20 border border-graphite rounded-xl p-6 shadow-md"
-            >
+            <div key={appt.id} className="bg-slate/20 border border-graphite rounded-xl p-6 shadow-md">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-semibold text-softwhite">{appt.session_type}</h2>
 
