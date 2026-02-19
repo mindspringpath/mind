@@ -26,17 +26,49 @@ export default function AuthCallbackPage() {
         const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
         if (exchangeError) {
+          console.error('Auth callback: Exchange error:', exchangeError)
           setError('Verification link is invalid or expired.')
           return
         }
 
-        // Redirect to login after successful verification
-        if (next) {
-          router.replace(next)
+        console.log('Auth callback: Session exchanged successfully')
+        
+        // Get user after session exchange
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          console.log('Auth callback: User authenticated:', user.email)
+          
+          // Check if user has admin role and redirect accordingly
+          try {
+            const { data: roleData } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', user.id)
+              .single()
+            
+            const isAdmin = roleData?.role === 'admin'
+            console.log('Auth callback: Admin status:', isAdmin)
+            
+            // Redirect to appropriate page
+            if (next) {
+              router.replace(next)
+            } else if (isAdmin) {
+              router.replace('/admin')
+            } else {
+              router.replace('/dashboard')
+            }
+          } catch (roleError) {
+            console.error('Auth callback: Role check failed:', roleError)
+            // Fallback to dashboard if role check fails
+            router.replace('/dashboard')
+          }
         } else {
-          router.replace('/auth/login')
+          console.error('Auth callback: No user found after exchange')
+          setError('Authentication failed. Please try again.')
         }
       } catch (err: any) {
+        console.error('Auth callback: Unexpected error:', err)
         setError('Verification failed. Please try again.')
       }
     }
