@@ -325,6 +325,8 @@ export async function signIn(email: string, password: string) {
     console.error('Error details:', {
       name: error.name,
       message: error.message,
+      status: error.status,
+      stack: error.stack
     })
     
     // RE-ENABLED: More specific AbortError detection
