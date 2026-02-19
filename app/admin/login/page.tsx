@@ -99,9 +99,11 @@ export default function AdminLoginPage() {
       } else if (msg.includes('Email not confirmed')) {
         setLoginError('Please verify your email first.')
       } else if (msg.includes('signal is aborted') || msg.includes('was cancelled')) {
-        setLoginError('Login was cancelled. Please try again.')
+        // TEMPORARILY DISABLED: Let's see the actual error
+        setLoginError(msg || 'Login failed. Please try again.')
       } else if (msg.includes('interrupted')) {
-        setLoginError('Login was interrupted. Please try again.')
+        // TEMPORARILY DISABLED: Let's see the actual error
+        setLoginError(msg || 'Login failed. Please try again.')
       } else {
         setLoginError(msg || 'Login failed. Please try again.')
       }
