@@ -12,6 +12,17 @@ export type UserRole = Database['public']['Tables']['user_roles']['Row']
 export type AvailabilitySlot = Database['public']['Tables']['availability_slots']['Row']
 export type ContactMessage = Database['public']['Tables']['contact_messages']['Row']
 
+export async function getCurrentUser(): Promise<User | null> {
+  // Only run on client side
+  if (typeof window === 'undefined') {
+    throw new Error('getCurrentUser can only be called on the client side')
+  }
+
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error) throw error
+  return user || null
+}
+
 export async function isAdmin(): Promise<boolean> {
   try {
     const user = await getCurrentUser()
@@ -29,9 +40,7 @@ export async function isAdmin(): Promise<boolean> {
       return false
     }
 
-    const isAdmin = roleData?.role === 'admin'
-    console.log('Admin check result:', { userId: user.id, isAdmin })
-    return isAdmin
+    return roleData?.role === 'admin'
   } catch (error) {
     console.error('Admin check exception:', error)
     return false
@@ -258,7 +267,15 @@ export async function signUp(email: string, password: string, fullName: string) 
     return data
   } catch (error: any) {
     console.error('Registration exception:', error)
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      status: error.status,
+      stack: error.stack
+    })
     
+    // TEMPORARILY DISABLED: AbortError detection to test if causing false positives
+    /*
     // Handle specific error cases - be more specific to avoid false positives
     if (error.name === 'AbortError') {
       console.error('Registration request was aborted:', error)
@@ -272,12 +289,13 @@ export async function signUp(email: string, password: string, fullName: string) 
     }
     
     // Don't catch general "signal is aborted" as it might be part of other error messages
-    // Only catch if it's specifically about the request being aborted
+    // Only catch if it's specifically about request being aborted
     if (error.message?.includes('The request was aborted') || 
         error.message?.includes('Request was aborted')) {
       console.error('Registration request was aborted:', error)
       throw new Error('Registration request was interrupted. Please try again.')
     }
+    */
     
     throw error
   }
@@ -306,8 +324,16 @@ export async function signIn(email: string, password: string) {
     return data
   } catch (error: any) {
     console.error('Login exception:', error)
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      status: error.status,
+      stack: error.stack
+    })
     
+    // TEMPORARILY DISABLED: AbortError detection to test if causing false positives
     // Handle specific error cases - be more specific to avoid false positives
+    /*
     if (error.name === 'AbortError') {
       console.error('Login request was aborted:', error)
       throw new Error('Login request was interrupted. Please try again.')
@@ -320,17 +346,19 @@ export async function signIn(email: string, password: string) {
     }
     
     // Don't catch general "signal is aborted" as it might be part of other error messages
-    // Only catch if it's specifically about the request being aborted
+    // Only catch if it's specifically about request being aborted
     if (error.message?.includes('The request was aborted') || 
         error.message?.includes('Request was aborted')) {
       console.error('Login request was aborted:', error)
       throw new Error('Login request was interrupted. Please try again.')
     }
+    */
     
     throw error
   }
 }
 
+// ... (rest of the code remains the same)
 export async function signOut() {
   // Only run on client side
   if (typeof window === 'undefined') {
@@ -364,17 +392,6 @@ export async function signOut() {
     
     throw error
   }
-}
-
-export async function getCurrentUser(): Promise<User | null> {
-  // Only run on client side
-  if (typeof window === 'undefined') {
-    throw new Error('getCurrentUser can only be called on the client side')
-  }
-
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error) throw error
-  return user || null
 }
 
 export async function resetPassword(email: string) {
