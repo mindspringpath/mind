@@ -57,8 +57,16 @@ export default function AdminDashboard() {
     const checkAdminAccess = async () => {
       try {
         console.log('Admin dashboard: Checking access...')
+        
+        // Add timeout to prevent hanging
+        const timeoutId = setTimeout(() => {
+          console.error('Admin dashboard: Access check timeout')
+          router.replace('/admin/login')
+        }, 15000) // 15 second timeout
+        
         const currentUser = await getCurrentUser()
         const adminStatus = await isAdmin()
+        clearTimeout(timeoutId)
         
         if (!currentUser) {
           console.log('Admin dashboard: No user found, redirecting to login')

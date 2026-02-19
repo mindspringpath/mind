@@ -13,6 +13,7 @@ export default function AdminLoginPage() {
   const [isAdminUser, setIsAdminUser] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [showLogin, setShowLogin] = useState(false)
+  const [roleCheckError, setRoleCheckError] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -23,7 +24,18 @@ export default function AdminLoginPage() {
     const checkAdminStatus = async () => {
       try {
         console.log('Admin login: Checking user status...')
+        
+        // Add timeout to prevent hanging
+        const timeoutId = setTimeout(() => {
+          console.error('Admin login: Role check timeout')
+          setRoleCheckError('Role verification is taking too long. Please refresh the page.')
+          setShowLogin(true)
+          setLoading(false)
+        }, 10000) // 10 second timeout for role check
+        
         const user = await getCurrentUser()
+        clearTimeout(timeoutId)
+        
         console.log('Admin login: User found:', !!user)
         setUser(user)
         
@@ -39,8 +51,8 @@ export default function AdminLoginPage() {
         setIsAdminUser(adminStatus)
         
         if (adminStatus) {
-          console.log('Admin login: User is admin, redirecting to dashboard')
-          router.replace('/admin')
+          console.log('Admin login: User is admin, redirecting to appointments')
+          router.replace('/admin/appointments')
         } else {
           console.log('Admin login: User is not admin, showing access denied')
         }
@@ -74,16 +86,25 @@ export default function AdminLoginPage() {
       if (result.user) {
         console.log('Admin login: Login successful, checking admin status')
         
+        // Add timeout for admin status check
+        const adminTimeoutId = setTimeout(() => {
+          console.error('Admin login: Admin status check timeout')
+          setLoginError('Role verification is taking too long. Please try again.')
+          setLoginLoading(false)
+        }, 10000) // 10 second timeout
+        
         // Check admin status after login
         const adminStatus = await isAdmin()
+        clearTimeout(adminTimeoutId)
+        
         console.log('Admin login: Admin status after login:', adminStatus)
         
         if (adminStatus) {
-          console.log('Admin login: User is admin, redirecting to dashboard')
-          router.replace('/admin')
+          console.log('Admin login: User is admin, redirecting to appointments')
+          router.replace('/admin/appointments')
         } else {
           setLoginError('Access denied. Admin privileges required.')
-          // Sign out the non-admin user
+          // Sign out non-admin user
           await signOut()
         }
       } else {
@@ -115,10 +136,21 @@ export default function AdminLoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-charcoal text-softwhite flex items-center justify-center">
+      <div className="min-h-screen bg-charcoal text-softwhite flex items-center justify-center p-6">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Checking access...</p>
+          <p className="text-softwhite mb-2">Checking access...</p>
+          {roleCheckError && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mt-4">
+              <p className="text-red-400 text-sm">{roleCheckError}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="btn-mindspring-primary mt-3 text-sm"
+              >
+                Refresh Page
+              </button>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -129,7 +161,7 @@ export default function AdminLoginPage() {
       <div className="min-h-screen bg-charcoal text-softwhite flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Redirecting to admin dashboard...</p>
+          <p>Redirecting to admin appointments...</p>
         </div>
       </div>
     )
