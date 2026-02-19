@@ -87,13 +87,27 @@ export default function AdminAppointmentsPage() {
   const [reschedule, setReschedule] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<'appointments' | 'availability'>('appointments')
 
-  useEffect(() => {
-    const loadData = async () => {
+useEffect(() => {
+  let mounted = true
+
+  const loadData = async () => {
+    try {
+      if (!mounted) return
       setLoading(true)
 
       const currentUser = await getCurrentUser()
+      if (!mounted) return
 
-      if (!currentUser || !(await isAdmin())) {
+      if (!currentUser) {
+        setUser(null)
+        setLoading(false)
+        return
+      }
+
+      const admin = await isAdmin() // ✅ no args
+      if (!mounted) return
+
+      if (!admin) {
         setUser(null)
         setLoading(false)
         return
@@ -107,23 +121,30 @@ export default function AdminAppointmentsPage() {
         .order('date', { ascending: true })
         .order('time', { ascending: true })
 
-      if (!error && data) {
-        setAppointments(data)
-      }
+      if (!mounted) return
 
+      if (!error && data) setAppointments(data)
+      setLoading(false)
+    } catch (err) {
+      console.error('Admin loadData error:', err)
+      if (!mounted) return
+      setUser(null)
       setLoading(false)
     }
+  }
 
+  loadData()
+
+  const { data: listener } = supabase.auth.onAuthStateChange(() => {
     loadData()
+  })
 
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      loadData()
-    })
+  return () => {
+    mounted = false
+    listener?.subscription?.unsubscribe()
+  }
+}, [])
 
-    return () => {
-      listener.subscription.unsubscribe()
-    }
-  }, [])
 
   if (loading) {
     return (

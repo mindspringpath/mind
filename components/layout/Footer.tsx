@@ -148,9 +148,7 @@ export default function Footer() {
               © {currentYear} MindSpring Path: Evidence-Based Coaching for Clarity & Focus. All rights reserved.
             </p>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6 mt-4 md:mt-0">
-              <Link href="/admin/login" className="text-softwhite/50 hover:text-softwhite text-sm transition-colors">
-                Admin Login
-              </Link>
+              <Link href="/login?next=/admin/appointments">Admin Login</Link>
               <Link href="/legal/privacy-policy" className="text-softwhite/50 hover:text-softwhite text-sm transition-colors">
                 Privacy Policy
               </Link>
