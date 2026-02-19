@@ -110,8 +110,8 @@ export default function AdminAppointmentsPage() {
           return
         }
 
-        // Admin check using userId (no nested getCurrentUser calls)
-        const admin = await isAdmin(currentUser.id)
+        // Admin check (isAdmin() doesn't take parameters)
+        const admin = await isAdmin()
         if (!mounted) return
 
         if (!admin) {

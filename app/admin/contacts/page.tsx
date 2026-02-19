@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { isAdmin, getContactMessages, updateContactMessage } from '@/lib/auth-helpers'
+import { getCurrentUser, isAdmin, getContactMessages, updateContactMessage } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -11,29 +11,33 @@ export default function AdminContactsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<'all' | 'new' | 'read' | 'archived'>('all')
+  const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
     const checkAdminAccess = async () => {
-      const adminCheck = await isAdmin()
-      if (!adminCheck) {
-        return (
-          <div className="min-h-screen bg-charcoal text-softwhite flex items-center justify-center">
-            <div className="text-center p-8">
-              <h1 className="text-2xl font-bold text-red-400 mb-4">Admin Access Required</h1>
-              <p className="text-softwhite/70 mb-6">
-                You need administrator privileges to access this page.
-              </p>
-              <a
-                href="/auth/login"
-                className="inline-block bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90"
-              >
-                Login
-              </a>
-            </div>
-          </div>
-        )
+      try {
+        const currentUser = await getCurrentUser()
+        if (!currentUser) {
+          setAccessDenied(true)
+          setLoading(false)
+          return false
+        }
+
+        const adminCheck = await isAdmin()
+        if (!adminCheck) {
+          setAccessDenied(true)
+          setLoading(false)
+          return false
+        }
+
+        setAccessDenied(false)
+        return true
+      } catch (error) {
+        console.error('Admin access check error:', error)
+        setAccessDenied(true)
+        setLoading(false)
+        return false
       }
-      return adminCheck
     }
 
     checkAdminAccess().then(isAdmin => {
@@ -97,6 +101,25 @@ export default function AdminContactsPage() {
           >
             Try Again
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-charcoal text-softwhite flex items-center justify-center">
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold text-red-400 mb-4">Admin Access Required</h1>
+          <p className="text-softwhite/70 mb-6">
+            You need administrator privileges to access this page.
+          </p>
+          <a
+            href="/admin/login"
+            className="inline-block bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90"
+          >
+            Admin Login
+          </a>
         </div>
       </div>
     )
