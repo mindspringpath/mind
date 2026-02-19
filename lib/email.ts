@@ -48,10 +48,13 @@ function createTransporter() {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
     },
-    // Hostinger specific settings
+    // Hostinger specific settings - Updated for TLS/STARTTLS compatibility
     tls: {
-      rejectUnauthorized: false // May be needed for some Hostinger configurations
+      rejectUnauthorized: false, // May be needed for some Hostinger configurations
+      secureProtocol: 'TLSv1_2_method' // Use secure TLS protocol
     },
+    // Use STARTTLS for port 587, SSL/TLS for port 465
+    requireTLS: Number(process.env.SMTP_PORT) === 587, // Enable STARTTLS for port 587
     debug: process.env.NODE_ENV === 'development', // Enable debug in development
     logger: process.env.NODE_ENV === 'development' // Enable logging in development
   })

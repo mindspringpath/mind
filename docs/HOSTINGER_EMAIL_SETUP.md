@@ -18,23 +18,33 @@ Create or update your `.env.local` file with the following settings:
 ```env
 # Hostinger Email Configuration
 SMTP_HOST=smtp.hostinger.com
-SMTP_PORT=465
-SMTP_USER=info@mindspringpath.com.au
+SMTP_PORT=587
+SMTP_USER=no-reply@mindspringpath.com
 SMTP_PASS=your-email-password
 ```
 
-### Alternative Hostinger Settings
+### Recommended Configuration (Updated)
 
-If the above doesn't work, try these alternatives:
+For better compatibility with email clients and encryption issues:
 
 ```env
-# Alternative 1: Different Hostinger server
-SMTP_HOST=mx1.hostinger.com
-SMTP_PORT=587
-
-# Alternative 2: With TLS
+# Recommended: TLS/STARTTLS Configuration
 SMTP_HOST=smtp.hostinger.com
 SMTP_PORT=587
+SMTP_USER=no-reply@mindspringpath.com
+SMTP_PASS=your-email-password
+```
+
+### Alternative Port Configuration
+
+If you face encryption issues, try port 465 with SSL/TLS:
+
+```env
+# Alternative: SSL/TLS Configuration
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=465
+SMTP_USER=no-reply@mindspringpath.com
+SMTP_PASS=your-email-password
 ```
 
 ### Step 3: Test Your Configuration
@@ -59,27 +69,45 @@ curl -X POST http://localhost:3000/api/test-hostinger-email \
 - Verify your email password is correct
 - If using 2FA, create an app password instead
 - Ensure the email account exists in Hostinger
+- Try using `no-reply@mindspringpath.com` as the SMTP user
 
 ### Issue 2: Connection Timeout
 **Solution:**
-- Try port 587 instead of 465
+- Try port 587 with STARTTLS instead of port 465
 - Check if your hosting provider blocks SMTP ports
 - Verify firewall settings
+- Ensure `smtp.hostinger.com` is accessible
 
 ### Issue 3: SSL/TLS Errors
 **Solution:**
-- The configuration includes `rejectUnauthorized: false`
-- Try different port combinations
+- The configuration now includes `secureProtocol: 'TLSv1_2_method'`
+- Try port 587 with STARTTLS enabled
+- Try port 465 with SSL/TLS enabled
 - Check Hostinger's SSL certificate status
+- Ensure `rejectUnauthorized: false` is set
+
+### Issue 4: Email Encryption Problems
+**Solution:**
+- **Recommended:** Use port 587 with TLS/STARTTLS
+- **Alternative:** Use port 465 with SSL/TLS
+- The code now automatically handles both configurations
+- Update your `.env.local` with the appropriate port
 
 ## 📋 Environment Variables Reference
 
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `SMTP_HOST` | Hostinger SMTP server | `smtp.hostinger.com` |
-| `SMTP_PORT` | SMTP port number | `465` or `587` |
-| `SMTP_USER` | Your Hostinger email | `info@mindspringpath.com.au` |
+| `SMTP_PORT` | SMTP port number | `587` (STARTTLS) or `465` (SSL/TLS) |
+| `SMTP_USER` | Your Hostinger email | `no-reply@mindspringpath.com` |
 | `SMTP_PASS` | Email password | `your-password` |
+
+### Port Configuration Details
+
+| Port | Encryption | Recommended For |
+|------|------------|-----------------|
+| `587` | STARTTLS | **Recommended** - Better compatibility |
+| `465` | SSL/TLS | Alternative for encryption issues |
 
 ## 🚀 Testing Checklist
 
