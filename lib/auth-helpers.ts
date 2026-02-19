@@ -25,8 +25,14 @@ export async function getCurrentUser(): Promise<User | null> {
 
 export async function isAdmin(): Promise<boolean> {
   try {
+    console.log('isAdmin: Starting admin check...')
     const user = await getCurrentUser()
-    if (!user) return false
+    if (!user) {
+      console.log('isAdmin: No user found')
+      return false
+    }
+
+    console.log('isAdmin: Checking role for user:', user.id)
 
     // Check if user has admin role
     const { data: roleData, error } = await supabase
@@ -36,13 +42,28 @@ export async function isAdmin(): Promise<boolean> {
       .single()
 
     if (error) {
-      console.error('Admin check error:', error)
+      console.error('isAdmin: Database error:', {
+        error: (error as any).message,
+        code: (error as any).code,
+        details: (error as any).details,
+        user_id: user.id
+      })
       return false
     }
 
-    return roleData?.role === 'admin'
+    const isAdminRole = roleData?.role === 'admin'
+    console.log('isAdmin: Role check result:', {
+      user_id: user.id,
+      role: roleData?.role,
+      is_admin: isAdminRole
+    })
+
+    return isAdminRole
   } catch (error) {
-    console.error('Admin check exception:', error)
+    console.error('isAdmin: Exception:', {
+      error: (error as any).message,
+      stack: (error as any).stack
+    })
     return false
   }
 }
