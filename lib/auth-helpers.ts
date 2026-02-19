@@ -259,15 +259,24 @@ export async function signUp(email: string, password: string, fullName: string) 
   } catch (error: any) {
     console.error('Registration exception:', error)
     
-    // Handle specific error cases
-    if (error.name === 'AbortError' || error.message?.includes('signal is aborted')) {
+    // Handle specific error cases - be more specific to avoid false positives
+    if (error.name === 'AbortError') {
       console.error('Registration request was aborted:', error)
       throw new Error('Registration request was interrupted. Please try again.')
     }
     
+    // Only catch specific signal abort messages, not general error messages
     if (error.message?.includes('signal is aborted without reason')) {
       console.error('Registration aborted without reason:', error)
       throw new Error('Registration was cancelled. Please try again.')
+    }
+    
+    // Don't catch general "signal is aborted" as it might be part of other error messages
+    // Only catch if it's specifically about the request being aborted
+    if (error.message?.includes('The request was aborted') || 
+        error.message?.includes('Request was aborted')) {
+      console.error('Registration request was aborted:', error)
+      throw new Error('Registration request was interrupted. Please try again.')
     }
     
     throw error
@@ -298,15 +307,24 @@ export async function signIn(email: string, password: string) {
   } catch (error: any) {
     console.error('Login exception:', error)
     
-    // Handle specific error cases
-    if (error.name === 'AbortError' || error.message?.includes('signal is aborted')) {
+    // Handle specific error cases - be more specific to avoid false positives
+    if (error.name === 'AbortError') {
       console.error('Login request was aborted:', error)
       throw new Error('Login request was interrupted. Please try again.')
     }
     
+    // Only catch specific signal abort messages, not general error messages
     if (error.message?.includes('signal is aborted without reason')) {
       console.error('Login aborted without reason:', error)
       throw new Error('Login was cancelled. Please try again.')
+    }
+    
+    // Don't catch general "signal is aborted" as it might be part of other error messages
+    // Only catch if it's specifically about the request being aborted
+    if (error.message?.includes('The request was aborted') || 
+        error.message?.includes('Request was aborted')) {
+      console.error('Login request was aborted:', error)
+      throw new Error('Login request was interrupted. Please try again.')
     }
     
     throw error

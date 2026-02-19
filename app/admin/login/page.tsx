@@ -60,9 +60,16 @@ export default function AdminLoginPage() {
     setLoginError('')
     setLoginLoading(true)
 
+    // Add timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      setLoginError('Login is taking longer than expected. Please try again.')
+      setLoginLoading(false)
+    }, 30000) // 30 second timeout
+
     try {
       console.log('Admin login: Attempting login for:', email)
       const result = await signIn(email, password)
+      clearTimeout(timeoutId)
       
       if (result.user) {
         console.log('Admin login: Login successful, checking admin status')
@@ -83,6 +90,7 @@ export default function AdminLoginPage() {
         setLoginError('Login failed. Please try again.')
       }
     } catch (err: any) {
+      clearTimeout(timeoutId)
       console.error('Admin login: Login error:', err)
       const msg = err?.message || ''
       
@@ -90,10 +98,15 @@ export default function AdminLoginPage() {
         setLoginError('Invalid email or password.')
       } else if (msg.includes('Email not confirmed')) {
         setLoginError('Please verify your email first.')
+      } else if (msg.includes('signal is aborted') || msg.includes('was cancelled')) {
+        setLoginError('Login was cancelled. Please try again.')
+      } else if (msg.includes('interrupted')) {
+        setLoginError('Login was interrupted. Please try again.')
       } else {
         setLoginError(msg || 'Login failed. Please try again.')
       }
     } finally {
+      clearTimeout(timeoutId)
       setLoginLoading(false)
     }
   }
