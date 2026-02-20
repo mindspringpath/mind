@@ -264,9 +264,7 @@ export async function signUp(email: string, password: string, fullName: string) 
   console.log('Registration attempt:', { email, fullName, timestamp: new Date().toISOString() })
 
   // Fix redirect URL - ensure it's properly constructed
-  const redirectUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/auth/callback`
-    : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
+  const redirectUrl = `https://www.mindspringpath.com.au/auth/callback`
 
   console.log('Registration: Using redirect URL:', redirectUrl)
 
