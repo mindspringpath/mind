@@ -19,35 +19,32 @@ export default function AuthCallbackPage() {
       const hashParams = new URLSearchParams(hash)
 
       const accessToken = hashParams.get('access_token')
-      const type = hashParams.get('type')
+      const refreshToken = hashParams.get('refresh_token')
       const next = searchParams.get('next')
 
-      if (!accessToken) {
-        setError('No verification code provided.')
+      if (!accessToken || !refreshToken) {
+        setError('Verification link is invalid or incomplete.')
         return
       }
 
       try {
-        // 2. Exchange token for session
-        // Supabase already created the session automatically.
-// We simply verify the user is authenticated.
-const { data: { user }, error: userError } = await supabase.auth.getUser()
+        // 2. Set the session using the tokens from the URL
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        })
 
-if (userError || !user) {
-  console.error('Auth callback: No user found after verification')
-  setError('Authentication failed. Please try again.')
-  return
-}
+        if (sessionError) {
+          console.error('Auth callback: Session error:', sessionError)
+          setError('Verification failed. Please request a new verification email.')
+          return
+        }
 
-console.log('Auth callback: User authenticated:', user.email)
+        // 3. Now the user is authenticated — fetch user
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-        console.log('Auth callback: Session exchanged successfully')
-
-        // 3. Get authenticated user
-        const { data: { user } } = await supabase.auth.getUser()
-
-        if (!user) {
-          console.error('Auth callback: No user found after exchange')
+        if (userError || !user) {
+          console.error('Auth callback: No user found after session set')
           setError('Authentication failed. Please try again.')
           return
         }
@@ -55,6 +52,7 @@ console.log('Auth callback: User authenticated:', user.email)
         console.log('Auth callback: User authenticated:', user.email)
 
         // 4. Check role
+        let isAdmin = false
         try {
           const { data: roleData } = await supabase
             .from('user_roles')
@@ -62,27 +60,22 @@ console.log('Auth callback: User authenticated:', user.email)
             .eq('user_id', user.id)
             .single()
 
-          const isAdmin = roleData?.role === 'admin'
-          console.log('Auth callback: Admin status:', isAdmin)
-
-          // 5. Redirect
-          if (next) {
-            router.replace(next)
-          } else if (isAdmin) {
-            router.replace('/admin/appointments')
-          } else {
-            router.replace('/dashboard')
-          }
+          isAdmin = roleData?.role === 'admin'
         } catch (roleError) {
           console.error('Auth callback: Role check failed:', roleError)
-
-          if (user?.email === 'mindspringpath@gmail.com') {
-            router.replace('/admin/appointments')
-          } else {
-            router.replace('/dashboard')
-          }
+          isAdmin = user.email === 'mindspringpath@gmail.com'
         }
-      } catch (err: any) {
+
+        // 5. Redirect
+        if (next) {
+          router.replace(next)
+        } else if (isAdmin) {
+          router.replace('/admin/appointments')
+        } else {
+          router.replace('/dashboard')
+        }
+
+      } catch (err) {
         console.error('Auth callback: Unexpected error:', err)
         setError('Verification failed. Please try again.')
       }
