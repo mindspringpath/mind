@@ -29,22 +29,17 @@ export default function AuthCallbackPage() {
 
       try {
         // 2. Exchange token for session
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(accessToken)
+        // Supabase already created the session automatically.
+// We simply verify the user is authenticated.
+const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-        if (exchangeError) {
-          console.error('Auth callback: Exchange error:', exchangeError)
+if (userError || !user) {
+  console.error('Auth callback: No user found after verification')
+  setError('Authentication failed. Please try again.')
+  return
+}
 
-          if (exchangeError.message?.includes('Invalid token')) {
-            setError('Verification link is invalid. Please request a new verification email.')
-          } else if (exchangeError.message?.includes('expired')) {
-            setError('Verification link has expired. Please request a new verification email.')
-          } else if (exchangeError.message?.includes('already been used')) {
-            setError('Verification link has already been used. Please try logging in.')
-          } else {
-            setError('Verification failed. Please try again or request a new verification email.')
-          }
-          return
-        }
+console.log('Auth callback: User authenticated:', user.email)
 
         console.log('Auth callback: Session exchanged successfully')
 
