@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn, getCurrentUser } from '@/lib/auth-helpers'
+import { supabase } from '@/lib/supabase'   // ⭐ REQUIRED
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
@@ -49,9 +50,23 @@ export default function LoginPage() {
       
       // Check if login was successful
       if (result.user) {
-        console.log('Login page: Login successful, redirecting to dashboard')
-        router.replace('/dashboard')
-      } else {
+  console.log('Login page: Login successful')
+
+  // Check admin role
+  const { data: roleData } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', result.user.id)
+    .single()
+
+  const isAdmin = roleData?.role === 'admin'
+
+  if (isAdmin) {
+    router.replace('/admin/appointments')
+  } else {
+    router.replace('/dashboard')
+  }
+} else {
         setError('Login failed. Please try again.')
       }
     } catch (err: any) {

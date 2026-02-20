@@ -2,26 +2,43 @@
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
 
-import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Loader2 } from 'lucide-react'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
-  const params = useSearchParams()
-  const token = params.get('code')
 
+  const [token, setToken] = useState<string | null>(null)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // ⭐ FIX: Read token from URL hash, not query params
+  useEffect(() => {
+    const hash = window.location.hash.substring(1)
+    const params = new URLSearchParams(hash)
+    const accessToken = params.get('access_token')
+
+    if (!accessToken) {
+      setError('Invalid or missing reset token.')
+    } else {
+      setToken(accessToken)
+    }
+  }, [])
+
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setSuccess('')
+
+    if (!token) {
+      setError('Missing reset token.')
+      return
+    }
 
     if (password !== confirm) {
       setError('Passwords do not match.')
@@ -35,40 +52,34 @@ export default function ResetPasswordPage() {
 
     setLoading(true)
 
-    // Add timeout to prevent hanging
-    const timeoutId = setTimeout(() => {
-      setError('Password reset is taking longer than expected. Please try again.')
-      setLoading(false)
-    }, 15000) // 15 second timeout
-
     try {
-      console.log('Reset password: Updating password')
+      // ⭐ FIX: Must exchange token before updating password
+      const { error: sessionError } = await supabase.auth.exchangeCodeForSession(token)
+      if (sessionError) {
+        console.error('Reset password: Session exchange error:', sessionError)
+        setError('Invalid or expired reset link. Please request a new one.')
+        setLoading(false)
+        return
+      }
+
       const { error: updateError } = await supabase.auth.updateUser({ password })
-      clearTimeout(timeoutId)
 
       if (updateError) {
         console.error('Reset password: Update error:', updateError)
         throw updateError
       }
 
-      console.log('Reset password: Password updated successfully')
       setSuccess('Password updated successfully!')
       setTimeout(() => router.replace('/auth/login'), 2000)
     } catch (err: any) {
-      clearTimeout(timeoutId)
       console.error('Reset password: Error:', err?.message)
-      
-      if (err.message.includes('weak password')) {
+
+      if (err.message?.includes('weak password')) {
         setError('Password is too weak. Please choose a stronger password.')
-      } else if (err.message.includes('same password')) {
-        setError('New password must be different from the current password.')
-      } else if (err.message.includes('timeout') || err.message.includes('TIMEOUT')) {
-        setError('Password reset timed out. Please try again.')
       } else {
         setError(err.message || 'Failed to update password.')
       }
     } finally {
-      clearTimeout(timeoutId)
       setLoading(false)
     }
   }

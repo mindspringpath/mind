@@ -44,7 +44,6 @@ export default function ForgotPasswordPage() {
         setError('Password reset was cancelled. Please try again.')
       } else if (err.message.includes('interrupted')) {
         setError('Password reset was interrupted. Please try again.')
-      } else if (err.message.includes('timeout') || err.message.includes('TIMEOUT')) {
         setError('Password reset timed out. Please check your connection and try again.')
       } else if (err.message.includes('User not found')) {
         setError('No account found with this email address.')

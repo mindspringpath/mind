@@ -14,21 +14,26 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const code = searchParams.get('code')
+      // 1. Read hash fragment from Supabase email link
+      const hash = window.location.hash.substring(1)
+      const hashParams = new URLSearchParams(hash)
+
+      const accessToken = hashParams.get('access_token')
+      const type = hashParams.get('type')
       const next = searchParams.get('next')
 
-      if (!code) {
+      if (!accessToken) {
         setError('No verification code provided.')
         return
       }
 
       try {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        // 2. Exchange token for session
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(accessToken)
 
         if (exchangeError) {
           console.error('Auth callback: Exchange error:', exchangeError)
-          
-          // Handle specific verification errors
+
           if (exchangeError.message?.includes('Invalid token')) {
             setError('Verification link is invalid. Please request a new verification email.')
           } else if (exchangeError.message?.includes('expired')) {
@@ -42,47 +47,45 @@ export default function AuthCallbackPage() {
         }
 
         console.log('Auth callback: Session exchanged successfully')
-        
-        // Get user after session exchange
+
+        // 3. Get authenticated user
         const { data: { user } } = await supabase.auth.getUser()
-        
-        if (user) {
-          console.log('Auth callback: User authenticated:', user.email)
-          
-          // Check if user has admin role and redirect accordingly
-          try {
-            const { data: roleData } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', user.id)
-              .single()
-            
-            const isAdmin = roleData?.role === 'admin'
-            console.log('Auth callback: Admin status:', isAdmin)
-            
-            // Redirect to appropriate page
-            if (next) {
-              router.replace(next)
-            } else if (isAdmin) {
-              router.replace('/admin/appointments')
-            } else {
-              router.replace('/dashboard')
-            }
-          } catch (roleError) {
-            console.error('Auth callback: Role check failed:', roleError)
-            
-            // If role check fails, still redirect based on user email
-            if (user?.email === 'mindspringpath@gmail.com') {
-              console.log('Auth callback: Known admin user, redirecting to appointments')
-              router.replace('/admin/appointments')
-            } else {
-              console.log('Auth callback: Role check failed, redirecting to dashboard')
-              router.replace('/dashboard')
-            }
-          }
-        } else {
+
+        if (!user) {
           console.error('Auth callback: No user found after exchange')
           setError('Authentication failed. Please try again.')
+          return
+        }
+
+        console.log('Auth callback: User authenticated:', user.email)
+
+        // 4. Check role
+        try {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .single()
+
+          const isAdmin = roleData?.role === 'admin'
+          console.log('Auth callback: Admin status:', isAdmin)
+
+          // 5. Redirect
+          if (next) {
+            router.replace(next)
+          } else if (isAdmin) {
+            router.replace('/admin/appointments')
+          } else {
+            router.replace('/dashboard')
+          }
+        } catch (roleError) {
+          console.error('Auth callback: Role check failed:', roleError)
+
+          if (user?.email === 'mindspringpath@gmail.com') {
+            router.replace('/admin/appointments')
+          } else {
+            router.replace('/dashboard')
+          }
         }
       } catch (err: any) {
         console.error('Auth callback: Unexpected error:', err)
